@@ -3,7 +3,13 @@
 
 #include <vector>
 
+#include "Transform.hpp"
 #include "Vector.hpp"
+
+struct PolygonProjectionResult {
+  double min = 0;
+  double max = 0;
+};
 
 class Polygon {
   public:
@@ -14,11 +20,17 @@ class Polygon {
     std::vector<Vector> vertices() const;
     void setVertices(const std::vector<Vector>& vertices);
     void calculateNormals();
-    std::vector<Vector> normals() const;
+    const std::vector<Vector>& normals() const;
+    PolygonProjectionResult project(const Vector& plane) const;
+
+    Polygon operator * (const Transform& trans) const;
+
+    friend std::ostream& operator<<(std::ostream& os, const Polygon& v);
 
   private:
     std::vector<Vector> vertices_;
     std::vector<Vector> normals_;
 };
+
 
 #endif

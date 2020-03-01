@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <math.h>
 
 #include "Vector.hpp"
 
@@ -54,4 +55,13 @@ std::string Vector::toString() const {
   std::stringstream ss;
   ss << x_ << "," << y_ << "," << z_ << "->" << magnitude_;
   return ss.str();
+}
+
+std::ostream& operator<<(std::ostream& os, const Vector& v) {
+  os << v.x_ << " "
+     << v.y_ << " "
+     << v.z_ << " "
+     << v.w_ << " ";
+
+  return os;
 }

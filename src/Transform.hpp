@@ -13,9 +13,13 @@ class Transform {
     void translate(const Vector& v);
     void rotate(float angle, const Vector& v);
 
+    static float dotProduct(const Vector& v1, const Vector& v2);
+    static float project(const Vector& v, const Vector& plane);
+
     std::string toString();
 
     Vector operator * (const Vector& v) const;
+
   private:
     glm::mat4 transMatrix_;
 };

@@ -21,3 +21,16 @@ Vector Transform::operator * (const Vector& v) const {
 std::string Transform::toString() {
   return glm::to_string(transMatrix_);
 }
+
+float Transform::dotProduct(const Vector& v1, const Vector& v2) {
+  return glm::dot(
+    glm::vec4(v1.x(), v1.y(), v1.z(), v1.w()),
+    glm::vec4(v2.x(), v2.y(), v2.z(), v2.w())
+  );
+  
+}
+
+float Transform::project(const Vector& v, const Vector& plane) {
+  Vector plane_unit = plane.unit();
+  return dotProduct( v, plane_unit );
+}

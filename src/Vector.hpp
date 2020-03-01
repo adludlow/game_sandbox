@@ -3,8 +3,6 @@
 
 #include <string>
 
-#include "glm/glm.hpp"
-
 typedef float coord_t;
 
 class Vector {
@@ -31,6 +29,8 @@ class Vector {
     Vector operator - (const Vector& v) const;
     Vector operator + (const Vector& v) const;
 
+    friend std::ostream& operator<<(std::ostream& os, const Vector& v);
+
   private:
     int w_;
     coord_t x_;
@@ -38,5 +38,6 @@ class Vector {
     coord_t z_;
     float magnitude_;
 };
+
 
 #endif
