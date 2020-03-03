@@ -28,6 +28,7 @@ int main(int argc, char** argv) {
   if (!game.init()) {
     std::cout << "Failed to initialise." << std::endl;
   } else {
+    game.initialiseShip();
     game.initialiseAsteroids(num_polygons, poly_radius, num_verts);
     game.runGameLoop();
   }

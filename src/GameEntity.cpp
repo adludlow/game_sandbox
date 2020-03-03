@@ -35,3 +35,11 @@ void GameEntity::move(const Vector& trans_vec) {
 
   polygon_ = polygon_ * trans;
 }
+
+void GameEntity::rotate(double angle) {
+  // Translate to origin, rotate, translate back.
+  Transform trans;
+  trans.rotate(angle, Vector(0, 0, 1));
+
+  polygon_ = polygon_ * trans;
+}

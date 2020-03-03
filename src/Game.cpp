@@ -49,11 +49,11 @@ std::vector<Collision> Game::detectCollisions(const std::vector<std::unique_ptr<
 }
 
 void Game::initialiseAsteroids(
-  int count,
+  unsigned int count,
   int radius,
   int num_verts
 ) {
-  for( auto i = 0; i < count; i++ ) {
+  while(asteroids_.size() < count) {
     Vector center = Vector(
         random(0, screenWidth_),
         random(0, screenHeight_),
@@ -113,20 +113,69 @@ int Game::runGameLoop() {
   bool quit = false;
   SDL_Event e;
   const Uint8 *keystate = nullptr;
+  float angle = 0.0;
+  float angleDelta = 0.1;
+  bool rotate = false;
+  bool move = false;
   while (!quit) {
     while (SDL_PollEvent(&e) != 0) {
+      keystate = SDL_GetKeyboardState(NULL);
       switch (e.type) {
         case SDL_QUIT:
           quit = true;
           break;
+        case SDL_KEYDOWN:
+          if( keystate[SDL_SCANCODE_LEFT] ) {
+            angle = angleDelta;
+            rotate = true;
+          }
+          if( keystate[SDL_SCANCODE_RIGHT] ) {
+            angle = -angleDelta;
+            rotate = true;
+          }
+          if( keystate[SDL_SCANCODE_UP] ) {
+            move = true;
+          }
+          break;
+        case SDL_KEYUP:
+          if( !keystate[SDL_SCANCODE_LEFT] && !keystate[SDL_SCANCODE_RIGHT] ) {
+            rotate = false;
+          }
+          if( !keystate[SDL_SCANCODE_UP] ) {
+            move = false;
+          }
+          break;
       }
     }
-    keystate = SDL_GetKeyboardState(nullptr);
+  
     std::vector<Collision> collisions;
     if (keystate[SDL_SCANCODE_C]) {
       collisions = detectCollisions(asteroids_);
     }
-    renderFrame(renderer_, asteroids_, [this](GameEntity& e) { e.render(this->renderer_); });
+
+    // Update Object Phase
+    if (rotate) {
+      ship_->rotate(angle);
+    }
+
+    std::vector<GameEntity*> objectsToRender;
+    objectsToRender.push_back(ship_.get());
+    renderFrame(renderer_, objectsToRender, [this](GameEntity& e) { e.render(this->renderer_); });
   }
   return 0;
+}
+
+void Game::initialiseShip() {
+  Vector center = Vector(
+      random(0, screenWidth_),
+      random(0, screenHeight_),
+      0
+  );
+  std::vector<Vector> vertices = {
+    Vector(center.x()-5, center.y()-5),
+    Vector(center.x(), center.y() + 5),
+    Vector(center.x()+5, center.y()-5),
+    Vector(center.x()-5, center.y()-5)
+  };
+  ship_ = std::make_unique<GameEntity>(Polygon(vertices));
 }

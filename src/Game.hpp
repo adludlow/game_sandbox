@@ -19,10 +19,12 @@ class Game {
       renderer_(nullptr) {};
 
     void initialiseAsteroids(
-      int count,
+      unsigned int count,
       int radius,
       int num_verts
     );
+
+    void initialiseShip();
 
     template <typename C, typename Oper> 
     void renderFrame(SDL_Renderer* renderer, C& container, Oper op);
@@ -35,6 +37,7 @@ class Game {
     std::vector<Collision> detectCollisions(const std::vector<std::unique_ptr<GameEntity>>& objects);
   private:
     std::vector<std::unique_ptr<GameEntity>> asteroids_;
+    std::unique_ptr<GameEntity> ship_;
     int screenWidth_;
     int screenHeight_;
     SDL_Window* window_;

@@ -10,7 +10,7 @@ void Transform::scale(const Vector& v) {
 }
 
 void Transform::rotate(float angle, const Vector& v) {
-
+  transMatrix_ = glm::rotate(transMatrix_, angle, glm::vec3(v.x(), v.y(), v.z()));
 }
 
 Vector Transform::operator * (const Vector& v) const {
