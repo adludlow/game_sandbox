@@ -12,6 +12,9 @@ typedef float coord_t;
 
 class Game {
   public:
+    const int SCREEN_FPS = 60;
+    const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
+
     Game(int screenWidth, int screenHeight) : 
       screenWidth_(screenWidth),
       screenHeight_(screenHeight),

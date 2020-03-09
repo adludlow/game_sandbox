@@ -2,6 +2,7 @@
 
 #include "Game.hpp"
 #include "util.hpp"
+#include "Timer.hpp"
 
 Collision Game::colliding(GameEntity* e1, GameEntity* e2) {
   std::vector<Vector> normals;
@@ -117,7 +118,14 @@ int Game::runGameLoop() {
   float angleDelta = 0.1;
   bool rotate = false;
   bool move = false;
+
+  Timer fpsTimer;
+  Timer capTimer;
+  int countedFrames = 0;
+  fpsTimer.start();
+
   while (!quit) {
+    capTimer.start();
     while (SDL_PollEvent(&e) != 0) {
       keystate = SDL_GetKeyboardState(NULL);
       switch (e.type) {
@@ -147,6 +155,10 @@ int Game::runGameLoop() {
           break;
       }
     }
+    float avgFps = countedFrames / ( fpsTimer.getTicks() / 1000.f );
+    if( avgFps > 2000000 ) {
+      avgFps = 0;
+    }
   
     std::vector<Collision> collisions;
     if (keystate[SDL_SCANCODE_C]) {
@@ -161,6 +173,12 @@ int Game::runGameLoop() {
     std::vector<GameEntity*> objectsToRender;
     objectsToRender.push_back(ship_.get());
     renderFrame(renderer_, objectsToRender, [this](GameEntity& e) { e.render(this->renderer_); });
+
+    countedFrames++;
+    int frameTicks = capTimer.getTicks();
+    if( frameTicks < SCREEN_TICKS_PER_FRAME ) {
+      SDL_Delay( SCREEN_TICKS_PER_FRAME - frameTicks );
+    }
   }
   return 0;
 }
