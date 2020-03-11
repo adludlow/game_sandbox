@@ -8,11 +8,12 @@
 
 class GameEntity {
   public:
-    GameEntity() : polygon_(Polygon()) {};
-    GameEntity(const Polygon& polygon) : polygon_(polygon) {};
+    GameEntity() : polygon_(Polygon()), heading_(Vector()) {};
+    GameEntity(const Polygon& polygon, const Vector& heading = Vector()) : polygon_(polygon), heading_(heading) {};
 
     void render(SDL_Renderer* renderer, bool normals = false);
     void move(const Vector& trans_vec);
+    void move();
     void rotate(double angle);
 
     const Polygon& polygon() const;
@@ -21,6 +22,7 @@ class GameEntity {
 
   private:
     Polygon polygon_;
+    Vector heading_;
 };
 
 #endif

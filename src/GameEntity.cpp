@@ -36,6 +36,13 @@ void GameEntity::move(const Vector& trans_vec) {
   polygon_ = polygon_ * trans;
 }
 
+void GameEntity::move() {
+  Transform trans;
+  trans.translate(heading_);
+
+  polygon_ = polygon_ * trans;
+}
+
 void GameEntity::rotate(double angle) {
   // Translate to origin, rotate, translate back.
   polygon_.calculateCentroid();
@@ -49,4 +56,6 @@ void GameEntity::rotate(double angle) {
   Transform transBack;
   transBack.translate(centroid);
   polygon_ = polygon_ * trans * rotTrans * transBack;
+
+  heading_ = rotTrans * heading_;
 }

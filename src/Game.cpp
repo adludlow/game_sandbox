@@ -115,7 +115,7 @@ int Game::runGameLoop() {
   SDL_Event e;
   const Uint8 *keystate = nullptr;
   float angle = 0.0;
-  float angleDelta = 0.1;
+  float angleDelta = -0.2;
   bool rotate = false;
   bool move = false;
 
@@ -170,8 +170,15 @@ int Game::runGameLoop() {
       ship_->rotate(angle);
     }
 
+    if (move) {
+      ship_->move();
+    }
+
     std::vector<GameEntity*> objectsToRender;
     objectsToRender.push_back(ship_.get());
+    for (auto i = asteroids_.begin(); i < asteroids_.end(); i++) {
+      objectsToRender.push_back(i->get());
+    }
     renderFrame(renderer_, objectsToRender, [this](GameEntity& e) { e.render(this->renderer_); });
 
     countedFrames++;
@@ -190,10 +197,10 @@ void Game::initialiseShip() {
       0
   );
   std::vector<Vector> vertices = {
-    Vector(center.x()-25, center.y()-25),
-    Vector(center.x(), center.y() + 25),
-    Vector(center.x()+25, center.y()-25),
-    Vector(center.x()-25, center.y()-25)
+    Vector(center.x()-25, center.y()+25),
+    Vector(center.x(), center.y() - 25),
+    Vector(center.x()+25, center.y()+25),
+    Vector(center.x()-25, center.y()+25)
   };
-  ship_ = std::make_unique<GameEntity>(Polygon(vertices));
+  ship_ = std::make_unique<GameEntity>(Polygon(vertices), Vector(0, -3, 1, 1));
 }
