@@ -22,6 +22,11 @@ Polygon::Polygon(const Vector& center, double radius, int num_verts) {
   calculateNormals();
 }
 
+Polygon::Polygon(const std::vector<Vector>& vertices) {
+  vertices_ = vertices;
+  calculateNormals();
+}
+
 std::vector<Vector> Polygon::vertices() const {
   return vertices_;
 }
@@ -74,4 +79,34 @@ std::ostream& operator<<(std::ostream& os, const Polygon& p) {
     os << n << std::endl;
   }
   return os;
+}
+
+Vector Polygon::centroid() {
+  return centroid_;
+}
+
+void Polygon::calculateCentroid() {
+  double area = 0.0;
+  double a_tmp = 0.0;
+  double c_x = 0.0;
+  double c_y = 0.0;
+
+  auto num_verts = vertices_.size();
+  for (auto i = 0; i < num_verts-1; i++) {
+    a_tmp = vertices_[i].x() * vertices_[i+1].y() - vertices_[i+1].x() * vertices_[i].y();
+    c_x += (vertices_[i].x() + vertices_[i+1].x()) * a_tmp;
+    c_y += (vertices_[i].y() + vertices_[i+1].y()) * a_tmp;
+    area += a_tmp;
+  }
+  a_tmp = vertices_[num_verts-1].x() * vertices_[0].y()
+  - vertices_[0].x() * vertices_[num_verts-1].y();
+  area += a_tmp;
+  c_x += (vertices_[num_verts-1].x() + vertices_[0].x()) * a_tmp;
+  c_y += (vertices_[num_verts-1].y() + vertices_[0].y()) * a_tmp;
+
+  area *= 0.5;
+  c_x /= (6*area);
+  c_y /= (6*area);
+  
+  centroid_ = Vector(c_x, c_y);
 }

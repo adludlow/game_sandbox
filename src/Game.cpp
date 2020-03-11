@@ -172,10 +172,10 @@ void Game::initialiseShip() {
       0
   );
   std::vector<Vector> vertices = {
-    Vector(center.x()-5, center.y()-5),
-    Vector(center.x(), center.y() + 5),
-    Vector(center.x()+5, center.y()-5),
-    Vector(center.x()-5, center.y()-5)
+    Vector(center.x()-25, center.y()-25),
+    Vector(center.x(), center.y() + 25),
+    Vector(center.x()+25, center.y()-25),
+    Vector(center.x()-25, center.y()-25)
   };
   ship_ = std::make_unique<GameEntity>(Polygon(vertices));
 }

@@ -14,13 +14,16 @@ struct PolygonProjectionResult {
 class Polygon {
   public:
     Polygon() : vertices_(std::vector<Vector>()) {};
-    Polygon(const std::vector<Vector>& vertices) : vertices_(vertices) {};
+    Polygon(const std::vector<Vector>& vertices);
     Polygon(const Vector& center, double radius, int num_verts);
 
     std::vector<Vector> vertices() const;
     void setVertices(const std::vector<Vector>& vertices);
     void calculateNormals();
     const std::vector<Vector>& normals() const;
+    void calculateCentroid();
+    Vector centroid();
+
     PolygonProjectionResult project(const Vector& plane) const;
 
     Polygon operator * (const Transform& trans) const;
@@ -30,6 +33,7 @@ class Polygon {
   private:
     std::vector<Vector> vertices_;
     std::vector<Vector> normals_;
+    Vector centroid_;
 };
 
 
