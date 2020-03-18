@@ -15,7 +15,8 @@ void Transform::rotate(float angle, const Vector& v) {
 
 Vector Transform::operator * (const Vector& v) const {
   glm::vec4 transResult = transMatrix_ * glm::vec4(v.x(), v.y(), v.z(), v.w());
-  return Vector(transResult.x, transResult.y, transResult.z);
+  Vector result = Vector(transResult.x, transResult.y, transResult.z);
+  return result;
 }
 
 std::string Transform::toString() {
@@ -32,5 +33,6 @@ float Transform::dotProduct(const Vector& v1, const Vector& v2) {
 
 float Transform::project(const Vector& v, const Vector& plane) {
   Vector plane_unit = plane.unit();
-  return dotProduct( v, plane_unit );
+  float result = dotProduct(plane_unit, v);
+  return result;
 }

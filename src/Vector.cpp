@@ -41,6 +41,10 @@ Vector Vector::operator + (const Vector& v) const {
   return Vector(x_ + v.x_, y_ + v.y_);
 }
 
+Vector Vector::operator * (float mag) const {
+  return Vector(x_ * mag, y_ * mag, z_ * mag, w_);
+}
+
 Vector Vector::lhNormal(const Vector& v1, const Vector& v2) {
   Vector edge = v1 - v2;
   return Vector(edge.y_, -edge.x_);

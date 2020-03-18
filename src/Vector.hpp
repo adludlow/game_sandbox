@@ -8,7 +8,7 @@ typedef float coord_t;
 class Vector {
   public:
     Vector(coord_t x, coord_t y, coord_t z, int w, float mag) : x_(x), y_(y), z_(z), w_(w), magnitude_(mag) {};
-    Vector(coord_t x, coord_t y, coord_t z = 1, coord_t w = 1) : Vector(x, y, z, w, 1) {};
+    Vector(coord_t x, coord_t y, coord_t z = 0, coord_t w = 1) : Vector(x, y, z, w, 1) {};
     Vector() : Vector(0, 0, 1, 0, 1) {};
 
     int w() const;
@@ -28,6 +28,7 @@ class Vector {
 
     Vector operator - (const Vector& v) const;
     Vector operator + (const Vector& v) const;
+    Vector operator * (float mag) const;
 
     friend std::ostream& operator<<(std::ostream& os, const Vector& v);
 

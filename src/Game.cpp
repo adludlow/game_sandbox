@@ -1,3 +1,4 @@
+#include <iostream>
 #include <SDL.h>
 
 #include "Game.hpp"
@@ -6,8 +7,10 @@
 
 Collision Game::colliding(GameEntity* e1, GameEntity* e2) {
   std::vector<Vector> normals;
-  normals.insert(normals.begin(), e1->polygon().normals().begin(), e1->polygon().normals().end());
-  normals.insert(normals.end(), e2->polygon().normals().begin(), e2->polygon().normals().end());
+  std::vector<Vector> e1Normals = e1->polygon().normals();
+  std::vector<Vector> e2Normals = e2->polygon().normals();
+  normals.insert(normals.begin(), e1Normals.begin(), e1Normals.end());
+  normals.insert(normals.end(), e2Normals.begin(), e2Normals.end());
   double interval = -1000000, min_interval = -1000000, max_interval = 0;
   Vector min_normal, max_normal = Vector();
   for ( auto n : normals ) {
@@ -36,17 +39,25 @@ Collision Game::colliding(GameEntity* e1, GameEntity* e2) {
   return Collision(true, min_interval, max_interval, min_normal.unit(), max_normal.unit(), e1, e2);
 }
 
-std::vector<Collision> Game::detectCollisions(const std::vector<std::unique_ptr<GameEntity>>& objects) {
+std::vector<Collision> Game::detectCollisions(const std::vector<GameEntity*>& objects) {
   std::vector<Collision> collisions;
   for( unsigned int i = 0; i < objects.size(); i++ ) {
     for( unsigned int j = i + 1; j < objects.size(); j++ ) {
-      Collision collision = colliding(objects[i].get(), objects[j].get());
+      Collision collision = colliding(objects[i], objects[j]);
       if( collision.colliding ) {
         collisions.push_back(collision);
       }
     }
   }
   return collisions;
+}
+
+std::vector<GameEntity*> getRawGEPointers(const std::vector<std::unique_ptr<GameEntity>>& unique_ptrs) {
+  std::vector<GameEntity*> ptrs;
+  for (auto p = unique_ptrs.begin(); p != unique_ptrs.end(); p++) {
+    ptrs.push_back(p->get());
+  }
+  return ptrs;
 }
 
 void Game::initialiseAsteroids(
@@ -62,7 +73,8 @@ void Game::initialiseAsteroids(
     );
 
     asteroids_.push_back(std::make_unique<GameEntity>(Polygon(center, radius, num_verts)));
-    if (detectCollisions(asteroids_).size() > 0) {
+    std::vector<GameEntity*> asteroids = getRawGEPointers(asteroids_);
+    if (detectCollisions(asteroids).size() > 0) {
       asteroids_.pop_back();
     }
   }
@@ -75,7 +87,7 @@ void Game::renderFrame(SDL_Renderer* renderer, C& container, Oper op) {
   SDL_SetRenderDrawColor( renderer, 255, 255, 255, SDL_ALPHA_OPAQUE );
 
   for(auto& i : container)
-    op(*i);
+    op(i);
 
   SDL_RenderPresent( renderer );
 }
@@ -160,9 +172,14 @@ int Game::runGameLoop() {
       avgFps = 0;
     }
   
+    std::vector<GameEntity*> gameObjects = getRawGEPointers(asteroids_);
+    gameObjects.push_back(ship_.get());
+
     std::vector<Collision> collisions;
-    if (keystate[SDL_SCANCODE_C]) {
-      collisions = detectCollisions(asteroids_);
+    collisions = detectCollisions(gameObjects);
+    for (auto c : collisions) {
+      Vector mtv = c.min_normal * -c.min_interval;
+      ship_->move(mtv);
     }
 
     // Update Object Phase
@@ -174,12 +191,7 @@ int Game::runGameLoop() {
       ship_->move();
     }
 
-    std::vector<GameEntity*> objectsToRender;
-    objectsToRender.push_back(ship_.get());
-    for (auto i = asteroids_.begin(); i < asteroids_.end(); i++) {
-      objectsToRender.push_back(i->get());
-    }
-    renderFrame(renderer_, objectsToRender, [this](GameEntity& e) { e.render(this->renderer_); });
+    renderFrame(renderer_, gameObjects, [this](GameEntity* e) { e->render(this->renderer_, false); });
 
     countedFrames++;
     int frameTicks = capTimer.getTicks();
@@ -196,11 +208,12 @@ void Game::initialiseShip() {
       random(0, screenHeight_),
       0
   );
+
   std::vector<Vector> vertices = {
     Vector(center.x()-25, center.y()+25),
     Vector(center.x(), center.y() - 25),
     Vector(center.x()+25, center.y()+25),
     Vector(center.x()-25, center.y()+25)
   };
-  ship_ = std::make_unique<GameEntity>(Polygon(vertices), Vector(0, -3, 1, 1));
+  ship_ = std::make_unique<GameEntity>(Polygon(vertices), Vector(0, -6, 1, 1));
 }

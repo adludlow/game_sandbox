@@ -34,6 +34,8 @@ void GameEntity::move(const Vector& trans_vec) {
   trans.translate(trans_vec);
 
   polygon_ = polygon_ * trans;
+
+  polygon_.calculateNormals();
 }
 
 void GameEntity::move() {

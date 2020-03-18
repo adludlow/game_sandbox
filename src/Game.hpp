@@ -37,7 +37,7 @@ class Game {
     int runGameLoop();
 
     Collision colliding(GameEntity* e1, GameEntity* e2);
-    std::vector<Collision> detectCollisions(const std::vector<std::unique_ptr<GameEntity>>& objects);
+    std::vector<Collision> detectCollisions(const std::vector<GameEntity*>& objects);
   private:
     std::vector<std::unique_ptr<GameEntity>> asteroids_;
     std::unique_ptr<GameEntity> ship_;
