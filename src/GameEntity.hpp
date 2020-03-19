@@ -14,6 +14,7 @@ class GameEntity {
     void render(SDL_Renderer* renderer, bool normals = false);
     void move(const Vector& trans_vec);
     void move();
+    void reverse();
     void rotate(double angle);
 
     const Polygon& polygon() const;

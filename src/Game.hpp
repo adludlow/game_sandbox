@@ -38,6 +38,7 @@ class Game {
 
     Collision colliding(GameEntity* e1, GameEntity* e2);
     std::vector<Collision> detectCollisions(const std::vector<GameEntity*>& objects);
+    bool inBounds(GameEntity* e);
   private:
     std::vector<std::unique_ptr<GameEntity>> asteroids_;
     std::unique_ptr<GameEntity> ship_;

@@ -185,10 +185,18 @@ int Game::runGameLoop() {
     // Update Object Phase
     if (rotate) {
       ship_->rotate(angle);
+
+      if (!inBounds(ship_.get())) {
+        ship_->rotate(-angle);
+      }
     }
 
     if (move) {
       ship_->move();
+
+      if (!inBounds(ship_.get())) {
+        ship_->reverse();
+      }
     }
 
     renderFrame(renderer_, gameObjects, [this](GameEntity* e) { e->render(this->renderer_, false); });
@@ -200,6 +208,16 @@ int Game::runGameLoop() {
     }
   }
   return 0;
+}
+
+bool Game::inBounds(GameEntity* e) {
+  for (auto v : e->polygon().vertices()) {
+    if (v.x() < 0 || v.x() > screenWidth_ ||
+        v.y() < 0 || v.y() > screenHeight_) {
+      return false;
+    }
+  }
+  return true;
 }
 
 void Game::initialiseShip() {

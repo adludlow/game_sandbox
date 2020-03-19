@@ -26,6 +26,7 @@ class Vector {
 
     std::string toString() const;
 
+    Vector operator - () const;
     Vector operator - (const Vector& v) const;
     Vector operator + (const Vector& v) const;
     Vector operator * (float mag) const;

@@ -33,6 +33,10 @@ Vector Vector::unit() const {
   return Vector(x_ / len, y_ / len, z_ / len);
 }
 
+Vector Vector::operator - () const {
+  return Vector(-x_, -y_);
+}
+
 Vector Vector::operator - (const Vector& v) const {
   return Vector(x_ - v.x_, y_ - v.y_);
 }
