@@ -21,8 +21,7 @@ class Polygon {
     void setVertices(const std::vector<Vector>& vertices);
     void calculateNormals();
     const std::vector<Vector>& normals() const;
-    void calculateCentroid();
-    Vector centroid();
+    Vector calculateCentroid() const;
 
     PolygonProjectionResult project(const Vector& plane) const;
 

@@ -81,11 +81,7 @@ std::ostream& operator<<(std::ostream& os, const Polygon& p) {
   return os;
 }
 
-Vector Polygon::centroid() {
-  return centroid_;
-}
-
-void Polygon::calculateCentroid() {
+Vector Polygon::calculateCentroid() const {
   double area = 0.0;
   double a_tmp = 0.0;
   double c_x = 0.0;
@@ -108,5 +104,5 @@ void Polygon::calculateCentroid() {
   c_x /= (6*area);
   c_y /= (6*area);
   
-  centroid_ = Vector(c_x, c_y);
+  return Vector(c_x, c_y);
 }

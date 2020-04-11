@@ -42,10 +42,12 @@ class Game {
   private:
     std::vector<std::unique_ptr<GameEntity>> asteroids_;
     std::unique_ptr<GameEntity> ship_;
+    std::vector<std::unique_ptr<GameEntity>> bullets_;
     int screenWidth_;
     int screenHeight_;
     SDL_Window* window_;
     SDL_Renderer* renderer_;
+    std::unique_ptr<GameEntity> initBullet();
 };
 
 #endif

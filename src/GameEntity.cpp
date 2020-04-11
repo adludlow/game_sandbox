@@ -2,8 +2,12 @@
 #include "Transform.hpp"
 #include "util.hpp"
 
-const Polygon& GameEntity::polygon() const {
+Polygon GameEntity::polygon() {
   return polygon_;
+}
+
+Vector GameEntity::heading() const {
+  return heading_;
 }
 
 void GameEntity::render(SDL_Renderer* renderer, bool normals) {
@@ -54,8 +58,7 @@ void GameEntity::reverse() {
 
 void GameEntity::rotate(double angle) {
   // Translate to origin, rotate, translate back.
-  polygon_.calculateCentroid();
-  Vector centroid = polygon_.centroid();
+  Vector centroid = polygon_.calculateCentroid();
   Transform trans;
   trans.translate(Vector(-centroid.x(), -centroid.y()));
 

@@ -129,7 +129,9 @@ int Game::runGameLoop() {
   float angle = 0.0;
   float angleDelta = -0.2;
   bool rotate = false;
-  bool move = false;
+  bool move_forward = false;
+  bool move_reverse = false;
+  bool shoot = false;
 
   Timer fpsTimer;
   Timer capTimer;
@@ -145,16 +147,22 @@ int Game::runGameLoop() {
           quit = true;
           break;
         case SDL_KEYDOWN:
-          if( keystate[SDL_SCANCODE_LEFT] ) {
+          if (keystate[SDL_SCANCODE_LEFT]) {
             angle = angleDelta;
             rotate = true;
           }
-          if( keystate[SDL_SCANCODE_RIGHT] ) {
+          if (keystate[SDL_SCANCODE_RIGHT]) {
             angle = -angleDelta;
             rotate = true;
           }
-          if( keystate[SDL_SCANCODE_UP] ) {
-            move = true;
+          if (keystate[SDL_SCANCODE_UP]) {
+            move_forward = true;
+          }
+          if (keystate[SDL_SCANCODE_DOWN]) {
+            move_reverse = true;
+          }
+          if (keystate[SDL_SCANCODE_SPACE]) {
+            shoot = true;
           }
           break;
         case SDL_KEYUP:
@@ -162,11 +170,16 @@ int Game::runGameLoop() {
             rotate = false;
           }
           if( !keystate[SDL_SCANCODE_UP] ) {
-            move = false;
+            move_forward = false;
+            move_reverse = false;
+          }
+          if (!keystate[SDL_SCANCODE_SPACE]) {
+            shoot = false;
           }
           break;
       }
     }
+
     float avgFps = countedFrames / ( fpsTimer.getTicks() / 1000.f );
     if( avgFps > 2000000 ) {
       avgFps = 0;
@@ -191,13 +204,30 @@ int Game::runGameLoop() {
       }
     }
 
-    if (move) {
+    if (move_forward) {
       ship_->move();
 
       if (!inBounds(ship_.get())) {
         ship_->reverse();
       }
     }
+
+    if (move_reverse) {
+      ship_->reverse();
+
+      if (!inBounds(ship_.get())) {
+        ship_->move();
+      }
+    }
+
+    if (shoot) {
+      bullets_.push_back(initBullet());
+    }
+    for (auto bullet = bullets_.begin(); bullet != bullets_.end(); bullet++) {
+      (*bullet)->move();
+    }
+    std::vector<GameEntity*> bullets_tmp = getRawGEPointers(bullets_);
+    gameObjects.insert(gameObjects.end(), bullets_tmp.begin(), bullets_tmp.end());
 
     renderFrame(renderer_, gameObjects, [this](GameEntity* e) { e->render(this->renderer_, false); });
 
@@ -218,6 +248,19 @@ bool Game::inBounds(GameEntity* e) {
     }
   }
   return true;
+}
+
+std::unique_ptr<GameEntity> Game::initBullet() {
+  Vector origin = ship_->polygon().calculateCentroid();
+  
+  std::vector<Vector> vertices = {
+    Vector(origin.x()-1, origin.y()-3),
+    Vector(origin.x()+1, origin.y()-3),
+    Vector(origin.x()+1, origin.y()),
+    Vector(origin.x()-1, origin.y()),
+    Vector(origin.x()-1, origin.y()-3)
+  };
+  return std::make_unique<GameEntity>(Polygon(vertices), ship_->heading());
 }
 
 void Game::initialiseShip() {

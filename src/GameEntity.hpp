@@ -17,7 +17,8 @@ class GameEntity {
     void reverse();
     void rotate(double angle);
 
-    const Polygon& polygon() const;
+    Polygon polygon();
+    Vector heading() const;
 
     virtual ~GameEntity() {};
 
