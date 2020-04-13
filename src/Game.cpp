@@ -225,6 +225,9 @@ int Game::runGameLoop() {
     }
     for (auto bullet = bullets_.begin(); bullet != bullets_.end(); bullet++) {
       (*bullet)->move();
+      if (!inBounds((*bullet).get())) {
+        bullets_.erase(bullet--);
+      }
     }
     std::vector<GameEntity*> bullets_tmp = getRawGEPointers(bullets_);
     gameObjects.insert(gameObjects.end(), bullets_tmp.begin(), bullets_tmp.end());
