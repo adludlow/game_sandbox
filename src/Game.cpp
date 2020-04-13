@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <SDL.h>
 
 #include "Game.hpp"
@@ -72,7 +73,7 @@ void Game::initialiseAsteroids(
         0
     );
 
-    asteroids_.push_back(std::make_unique<GameEntity>(Polygon(center, radius, num_verts)));
+    asteroids_.push_back(std::make_unique<GameEntity>(Polygon(center, radius, num_verts), Vector(), "asteroid"));
     std::vector<GameEntity*> asteroids = getRawGEPointers(asteroids_);
     if (detectCollisions(asteroids).size() > 0) {
       asteroids_.pop_back();
@@ -185,16 +186,6 @@ int Game::runGameLoop() {
       avgFps = 0;
     }
   
-    std::vector<GameEntity*> gameObjects = getRawGEPointers(asteroids_);
-    gameObjects.push_back(ship_.get());
-
-    std::vector<Collision> collisions;
-    collisions = detectCollisions(gameObjects);
-    for (auto c : collisions) {
-      Vector mtv = c.min_normal * -c.min_interval;
-      ship_->move(mtv);
-    }
-
     // Update Object Phase
     if (rotate) {
       ship_->rotate(angle);
@@ -229,8 +220,28 @@ int Game::runGameLoop() {
         bullets_.erase(bullet--);
       }
     }
+
+    std::vector<GameEntity*> gameObjects = getRawGEPointers(asteroids_);
+    gameObjects.push_back(ship_.get());
     std::vector<GameEntity*> bullets_tmp = getRawGEPointers(bullets_);
     gameObjects.insert(gameObjects.end(), bullets_tmp.begin(), bullets_tmp.end());
+
+    std::vector<Collision> collisions;
+    collisions = detectCollisions(gameObjects);
+    for (auto c : collisions) {
+      if ((c.entity1->type() == "player_ship" && c.entity2->type() == "asteroid") ||
+          (c.entity1->type() == "asteroid" && c.entity2->type() == "player_ship")) {
+        // TODO Ship explodes
+        Vector mtv = c.min_normal * -c.min_interval;
+        ship_->move(mtv);
+      }
+      if ((c.entity1->type() == "bullet" && c.entity2->type() == "asteroid") ||
+          (c.entity1->type() == "asteroid" && c.entity2->type() == "bullet")) {
+        // Asteroid explodes
+        boost::uuids::uuid asteroidId = c.entity1->type() == "asteroid" ? c.entity1->id() : c.entity2->id();
+        asteroids_.erase(std::find_if(asteroids_.begin(), asteroids_.end(), [asteroidId] (std::unique_ptr<GameEntity>& ge) { return ge->id() == asteroidId; }));
+      }
+    }
 
     renderFrame(renderer_, gameObjects, [this](GameEntity* e) { e->render(this->renderer_, false); });
 
@@ -263,7 +274,7 @@ std::unique_ptr<GameEntity> Game::initBullet() {
     Vector(origin.x()-1, origin.y()),
     Vector(origin.x()-1, origin.y()-3)
   };
-  return std::make_unique<GameEntity>(Polygon(vertices), ship_->heading());
+  return std::make_unique<GameEntity>(Polygon(vertices), ship_->heading(), "bullet");
 }
 
 void Game::initialiseShip() {
@@ -279,5 +290,5 @@ void Game::initialiseShip() {
     Vector(center.x()+25, center.y()+25),
     Vector(center.x()-25, center.y()+25)
   };
-  ship_ = std::make_unique<GameEntity>(Polygon(vertices), Vector(0, -6, 1, 1));
+  ship_ = std::make_unique<GameEntity>(Polygon(vertices), Vector(0, -6, 1, 1), "player_ship");
 }

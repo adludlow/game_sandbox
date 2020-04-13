@@ -1,15 +1,22 @@
 #ifndef ENTITY_HPP
 #define ENTITY_HPP
 
+#include <string>
 #include <SDL.h>
+#include <boost/uuid/uuid.hpp>
 
 #include "Polygon.hpp"
 #include "Vector.hpp"
 
 class GameEntity {
   public:
-    GameEntity() : polygon_(Polygon()), heading_(Vector()) {};
-    GameEntity(const Polygon& polygon, const Vector& heading = Vector()) : polygon_(polygon), heading_(heading) {};
+    GameEntity() : polygon_(Polygon()), heading_(Vector()), type_("") {
+      init();
+    };
+
+    GameEntity(const Polygon& polygon, const Vector& heading = Vector(), const std::string& type = "") : polygon_(polygon), heading_(heading), type_(type) {
+      init();
+    };
 
     void render(SDL_Renderer* renderer, bool normals = false);
     void move(const Vector& trans_vec);
@@ -19,12 +26,18 @@ class GameEntity {
 
     Polygon polygon();
     Vector heading() const;
+    std::string type();
+    boost::uuids::uuid id();
 
     virtual ~GameEntity() {};
 
   private:
+    boost::uuids::uuid id_;
     Polygon polygon_;
     Vector heading_;
+    std::string type_;
+
+    void init();
 };
 
 #endif

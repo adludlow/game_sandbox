@@ -1,6 +1,13 @@
+#include <boost/uuid/string_generator.hpp>
+
 #include "GameEntity.hpp"
 #include "Transform.hpp"
 #include "util.hpp"
+
+void GameEntity::init() {
+  boost::uuids::string_generator gen;
+  id_ = gen("{01234567-89ab-cdef-0123-456789abcdef}");
+}
 
 Polygon GameEntity::polygon() {
   return polygon_;
@@ -8,6 +15,14 @@ Polygon GameEntity::polygon() {
 
 Vector GameEntity::heading() const {
   return heading_;
+}
+
+std::string GameEntity::type() {
+  return type_;
+}
+
+boost::uuids::uuid GameEntity::id() {
+  return id_;
 }
 
 void GameEntity::render(SDL_Renderer* renderer, bool normals) {
