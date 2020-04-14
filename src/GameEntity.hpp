@@ -3,7 +3,6 @@
 
 #include <string>
 #include <SDL.h>
-#include <boost/uuid/uuid.hpp>
 
 #include "Polygon.hpp"
 #include "Vector.hpp"
@@ -27,12 +26,12 @@ class GameEntity {
     Polygon polygon();
     Vector heading() const;
     std::string type();
-    boost::uuids::uuid id();
+    std::string id();
 
     virtual ~GameEntity() {};
 
   private:
-    boost::uuids::uuid id_;
+    std::string id_;
     Polygon polygon_;
     Vector heading_;
     std::string type_;

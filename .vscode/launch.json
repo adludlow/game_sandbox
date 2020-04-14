@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/build/game_sandbox",
-      "args": [1 4 100],
+      "args": [10 13 30],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

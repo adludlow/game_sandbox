@@ -128,7 +128,7 @@ int Game::runGameLoop() {
   SDL_Event e;
   const Uint8 *keystate = nullptr;
   float angle = 0.0;
-  float angleDelta = -0.2;
+  float angleDelta = -0.1;
   bool rotate = false;
   bool move_forward = false;
   bool move_reverse = false;
@@ -238,7 +238,7 @@ int Game::runGameLoop() {
       if ((c.entity1->type() == "bullet" && c.entity2->type() == "asteroid") ||
           (c.entity1->type() == "asteroid" && c.entity2->type() == "bullet")) {
         // Asteroid explodes
-        boost::uuids::uuid asteroidId = c.entity1->type() == "asteroid" ? c.entity1->id() : c.entity2->id();
+        std::string asteroidId = c.entity1->type() == "asteroid" ? c.entity1->id() : c.entity2->id();
         asteroids_.erase(std::find_if(asteroids_.begin(), asteroids_.end(), [asteroidId] (std::unique_ptr<GameEntity>& ge) { return ge->id() == asteroidId; }));
       }
     }
