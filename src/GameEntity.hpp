@@ -2,10 +2,13 @@
 #define ENTITY_HPP
 
 #include <string>
+#include <memory>
 #include <SDL.h>
 
 #include "Polygon.hpp"
 #include "Vector.hpp"
+
+typedef std::unique_ptr<GameEntity> GePtr;
 
 class GameEntity {
   public:

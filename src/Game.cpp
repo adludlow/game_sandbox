@@ -5,6 +5,7 @@
 #include "Game.hpp"
 #include "util.hpp"
 #include "Timer.hpp"
+#include "constants.hpp"
 
 Collision Game::colliding(GameEntity* e1, GameEntity* e2) {
   std::vector<Vector> normals;
@@ -61,22 +62,32 @@ std::vector<GameEntity*> getRawGEPointers(const std::vector<std::unique_ptr<Game
   return ptrs;
 }
 
-void Game::initialiseAsteroids(
-  unsigned int count,
-  int radius,
-  int num_verts
-) {
-  while(asteroids_.size() < count) {
-    Vector center = Vector(
-        random(0, screenWidth_),
-        random(0, screenHeight_),
-        0
-    );
+GEPtr generateAsteroid(int radius, int numVerts) {
+  Vector center = Vector(
+      random(0, screenWidth_),
+      random(0, screenHeight_),
+      0
+  );
 
-    asteroids_.push_back(std::make_unique<GameEntity>(Polygon(center, radius, num_verts), Vector(), "asteroid"));
-    std::vector<GameEntity*> asteroids = getRawGEPointers(asteroids_);
+  return std::make_unique<GameEntity>(Polygon(center, radius, numVerts), Vector(), ASTEROID_GE_TYPE)
+}
+
+void Game::replenishAsteroids() {
+  std::vector<GameEntity*> asteroids;
+  for (auto it = gameObjects_.cbegin(); it != gameObjects_.cend(); it++) {
+    if (it->first == ASTEROID_GE_TYPE) {
+      asteroids.push_back(it->second.get());
+    }
+  }
+  int spawnCount = maxAsteroids_ - asteroids.size();
+  for (int i = 0; i < spawnCount; i++) {
+    GePtr asteroid = generateAsteroid(asteroidRadius_, asteroidVertCount_);
+    asteroids.push_back(asteroid.get());
     if (detectCollisions(asteroids).size() > 0) {
       asteroids_.pop_back();
+      i--;
+    } else {
+      gameObjects_[GoMapKey(ASTEROID_GE_TYPE, asteroid.id())] = std::move(asteroid);
     }
   }
 }
@@ -123,6 +134,41 @@ bool Game::init() {
   return success;
 }
 
+GameEntity* Game::initShip() {
+  Vector center = Vector(
+      random(0, screenWidth_),
+      random(0, screenHeight_),
+      0
+  );
+
+  std::vector<Vector> vertices = {
+    Vector(center.x()-25, center.y()+25),
+    Vector(center.x(), center.y() - 25),
+    Vector(center.x()+25, center.y()+25),
+    Vector(center.x()-25, center.y()+25)
+  };
+  GePtr ship = std::make_unique<GameEntity>(Polygon(vertices), Vector(0, -6, 1, 1), PLAYER_SHIP_GE_TYPE);
+  shipKey_ = GoMapKey(PLAYER_SHIP_GE_TYPE, ship->id());
+  gameObjects_[shipKey] = std::move(ship);
+
+  return ship.get();
+}
+
+void Game::initBullet() {
+  std::unique_ptr ship = gameObjects_[shipKey_];
+  Vector origin = ship->polygon().calculateCentroid();
+  
+  std::vector<Vector> vertices = {
+    Vector(origin.x()-1, origin.y()-3),
+    Vector(origin.x()+1, origin.y()-3),
+    Vector(origin.x()+1, origin.y()),
+    Vector(origin.x()-1, origin.y()),
+    Vector(origin.x()-1, origin.y()-3)
+  };
+  GePtr bullet = std::make_unique<GameEntity>(Polygon(vertices), ship->heading(), BULLET_GE_TYPE);
+  gameObjects_[GoMapKey(BULLET_GE_TYPE, bullet->id())] = std::move(bullet);
+}
+
 int Game::runGameLoop() {
   bool quit = false;
   SDL_Event e;
@@ -138,7 +184,8 @@ int Game::runGameLoop() {
   Timer capTimer;
   int countedFrames = 0;
   fpsTimer.start();
-
+  replenishAsteroids();
+  GameEntity* ship = initShip();
   while (!quit) {
     capTimer.start();
     while (SDL_PollEvent(&e) != 0) {
@@ -188,31 +235,31 @@ int Game::runGameLoop() {
   
     // Update Object Phase
     if (rotate) {
-      ship_->rotate(angle);
+      ship->rotate(angle);
 
       if (!inBounds(ship_.get())) {
-        ship_->rotate(-angle);
+        ship->rotate(-angle);
       }
     }
 
     if (move_forward) {
-      ship_->move();
+      ship->move();
 
       if (!inBounds(ship_.get())) {
-        ship_->reverse();
+        ship->reverse();
       }
     }
 
     if (move_reverse) {
-      ship_->reverse();
+      ship->reverse();
 
       if (!inBounds(ship_.get())) {
-        ship_->move();
+        ship->move();
       }
     }
 
     if (shoot) {
-      bullets_.push_back(initBullet());
+      initBullet();
     }
     for (auto bullet = bullets_.begin(); bullet != bullets_.end(); bullet++) {
       (*bullet)->move();
@@ -264,31 +311,3 @@ bool Game::inBounds(GameEntity* e) {
   return true;
 }
 
-std::unique_ptr<GameEntity> Game::initBullet() {
-  Vector origin = ship_->polygon().calculateCentroid();
-  
-  std::vector<Vector> vertices = {
-    Vector(origin.x()-1, origin.y()-3),
-    Vector(origin.x()+1, origin.y()-3),
-    Vector(origin.x()+1, origin.y()),
-    Vector(origin.x()-1, origin.y()),
-    Vector(origin.x()-1, origin.y()-3)
-  };
-  return std::make_unique<GameEntity>(Polygon(vertices), ship_->heading(), "bullet");
-}
-
-void Game::initialiseShip() {
-  Vector center = Vector(
-      random(0, screenWidth_),
-      random(0, screenHeight_),
-      0
-  );
-
-  std::vector<Vector> vertices = {
-    Vector(center.x()-25, center.y()+25),
-    Vector(center.x(), center.y() - 25),
-    Vector(center.x()+25, center.y()+25),
-    Vector(center.x()-25, center.y()+25)
-  };
-  ship_ = std::make_unique<GameEntity>(Polygon(vertices), Vector(0, -6, 1, 1), "player_ship");
-}

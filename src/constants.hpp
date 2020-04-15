@@ -15,5 +15,9 @@ const int GAMESPACE_HEIGHT = SCREEN_HEIGHT - 100;
 
 const double pi = boost::math::constants::pi<double>();
 
+const char* ASTEROID_GE_TYPE = "asteroid";
+const char* PLAYER_SHIP_GE_TYPE = "player_ship";
+const char* BULLET_GE_TYPE = "bullet";
+
 #endif
 
