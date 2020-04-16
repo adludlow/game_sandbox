@@ -10,7 +10,7 @@ double random( double min, double max ) {
 std::vector<SDL_Point> toSdlPoints(const std::vector<Vector>& vertices) {
   std::vector<SDL_Point> sdlPoints;
   for( auto i : vertices ) {
-    sdlPoints.push_back({ round(i.x()), round(i.y())});
+    sdlPoints.push_back({ static_cast<int>(round(i.x())), static_cast<int>(round(i.y()))});
   }
   return sdlPoints;
 }

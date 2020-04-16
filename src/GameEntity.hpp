@@ -8,8 +8,6 @@
 #include "Polygon.hpp"
 #include "Vector.hpp"
 
-typedef std::unique_ptr<GameEntity> GePtr;
-
 class GameEntity {
   public:
     GameEntity() : polygon_(Polygon()), heading_(Vector()), type_("") {
@@ -41,5 +39,7 @@ class GameEntity {
 
     void init();
 };
+
+typedef std::unique_ptr<GameEntity> GePtr;
 
 #endif

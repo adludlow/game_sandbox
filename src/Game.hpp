@@ -31,7 +31,7 @@ class Game {
       window_(nullptr),
       renderer_(nullptr) {};
 
-    GEPtr generateAsteroid(int radius, int numVerts);
+    GePtr generateAsteroid(int radius, int numVerts);
 
     void replenishAsteroids();
 
@@ -40,6 +40,7 @@ class Game {
 
     template <typename C, typename Oper> 
     void renderFrame(SDL_Renderer* renderer, C& container, Oper op);
+    void renderFrame();
 
     bool init();
 
@@ -49,19 +50,19 @@ class Game {
     std::vector<Collision> detectCollisions(const std::vector<GameEntity*>& objects);
     bool inBounds(GameEntity* e);
   private:
-    unsigned int maxAsteroids_;
-    unsigned int asteroidRaduis_;
-    unsigned int asteroidVertCount_;
-
-    std::map<GoMapKey, GePtr> gameObjects_
-
-    std::vector<GePtr> asteroids_;
-    GoMapKey shipKey_;
-    std::vector<GePtr> bullets_;
     int screenWidth_;
     int screenHeight_;
+    unsigned int maxAsteroids_;
+    unsigned int asteroidRadius_;
+    unsigned int asteroidVertCount_;
+
+    std::map<GoMapKey, GePtr> gameObjects_;
+
+    GoMapKey shipKey_;
     SDL_Window* window_;
     SDL_Renderer* renderer_;
+
+    std::vector<GameEntity*> objectsOfType(const char* const type);
 };
 
 #endif

@@ -36,7 +36,7 @@ void Polygon::setVertices(const std::vector<Vector>& vertices) {
 }
 
 void Polygon::calculateNormals() {
-  normals_.empty();
+  normals_.clear();
   for ( size_t i = 0; i < vertices_.size()-1; i++ ) {
     Vector normal = Vector::rhNormal(vertices_[i], vertices_[i+1]);
     normals_.push_back(normal);
@@ -88,7 +88,7 @@ Vector Polygon::calculateCentroid() const {
   double c_y = 0.0;
 
   auto num_verts = vertices_.size();
-  for (auto i = 0; i < num_verts-1; i++) {
+  for (auto i = 0lu; i < num_verts-1; i++) {
     a_tmp = vertices_[i].x() * vertices_[i+1].y() - vertices_[i+1].x() * vertices_[i].y();
     c_x += (vertices_[i].x() + vertices_[i+1].x()) * a_tmp;
     c_y += (vertices_[i].y() + vertices_[i+1].y()) * a_tmp;
