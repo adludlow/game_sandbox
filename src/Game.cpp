@@ -5,6 +5,7 @@
 #include "Game.hpp"
 #include "util.hpp"
 #include "Timer.hpp"
+#include "constants.hpp"
 
 Collision Game::colliding(GameEntity* e1, GameEntity* e2) {
   std::vector<Vector> normals;
@@ -53,44 +54,52 @@ std::vector<Collision> Game::detectCollisions(const std::vector<GameEntity*>& ob
   return collisions;
 }
 
-std::vector<GameEntity*> getRawGEPointers(const std::vector<std::unique_ptr<GameEntity>>& unique_ptrs) {
-  std::vector<GameEntity*> ptrs;
-  for (auto p = unique_ptrs.begin(); p != unique_ptrs.end(); p++) {
-    ptrs.push_back(p->get());
-  }
-  return ptrs;
+GePtr Game::generateAsteroid(int radius, int numVerts) {
+  Vector center = Vector(
+      random(0, screenWidth_),
+      random(0, screenHeight_),
+      0
+  );
+
+  return std::make_unique<GameEntity>(Polygon(center, radius, numVerts), Vector(), ASTEROID_GE_TYPE);
 }
 
-void Game::initialiseAsteroids(
-  unsigned int count,
-  int radius,
-  int num_verts
-) {
-  while(asteroids_.size() < count) {
-    Vector center = Vector(
-        random(0, screenWidth_),
-        random(0, screenHeight_),
-        0
-    );
+std::vector<GameEntity*> Game::objectsOfType(const char* const type) {
+  std::vector<GameEntity*> objects;
+  for (auto it = gameObjects_.cbegin(); it != gameObjects_.cend(); it++) {
+    if (type == std::string("ALL") || it->first.first == type) {
+      objects.push_back(it->second.get());
+    }
+  }
+  return objects;
+}
 
-    asteroids_.push_back(std::make_unique<GameEntity>(Polygon(center, radius, num_verts), Vector(), "asteroid"));
-    std::vector<GameEntity*> asteroids = getRawGEPointers(asteroids_);
+void Game::replenishAsteroids() {
+  std::vector<GameEntity*> asteroids = objectsOfType(ASTEROID_GE_TYPE);
+
+  int spawnCount = maxAsteroids_ - asteroids.size();
+  for (int i = 0; i < spawnCount; i++) {
+    GePtr asteroid = generateAsteroid(asteroidRadius_, asteroidVertCount_);
+    asteroids.push_back(asteroid.get());
     if (detectCollisions(asteroids).size() > 0) {
-      asteroids_.pop_back();
+      asteroids.pop_back();
+      i--;
+    } else {
+      gameObjects_[GoMapKey(ASTEROID_GE_TYPE, asteroid->id())] = std::move(asteroid);
     }
   }
 }
 
-template <typename C, typename Oper> 
-void Game::renderFrame(SDL_Renderer* renderer, C& container, Oper op) {
-  SDL_SetRenderDrawColor( renderer, 0, 0, 0, SDL_ALPHA_OPAQUE );
-  SDL_RenderClear( renderer );
-  SDL_SetRenderDrawColor( renderer, 255, 255, 255, SDL_ALPHA_OPAQUE );
+void Game::renderFrame() {
+  SDL_SetRenderDrawColor(renderer_, 0, 0, 0, SDL_ALPHA_OPAQUE);
+  SDL_RenderClear(renderer_);
+  SDL_SetRenderDrawColor(renderer_, 255, 255, 255, SDL_ALPHA_OPAQUE);
 
-  for(auto& i : container)
-    op(i);
+  for (auto& i : gameObjects_) {
+    i.second->render(renderer_);
+  }
 
-  SDL_RenderPresent( renderer );
+  SDL_RenderPresent(renderer_);
 }
 
 bool Game::init() {
@@ -123,6 +132,51 @@ bool Game::init() {
   return success;
 }
 
+GameEntity* Game::initShip() {
+  Vector center = Vector(
+      random(0, screenWidth_),
+      random(0, screenHeight_),
+      0
+  );
+
+  std::vector<Vector> vertices = {
+    Vector(center.x()-25, center.y()+25),
+    Vector(center.x(), center.y() - 25),
+    Vector(center.x()+25, center.y()+25),
+    Vector(center.x()-25, center.y()+25)
+  };
+  GePtr ship = std::make_unique<GameEntity>(Polygon(vertices), Vector(0, -6, 1, 1), PLAYER_SHIP_GE_TYPE);
+  shipKey_ = GoMapKey(PLAYER_SHIP_GE_TYPE, ship->id());
+  gameObjects_[shipKey_] = std::move(ship);
+
+  return gameObjects_[shipKey_].get();
+}
+
+void Game::initBullet() {
+  GameEntity* ship = gameObjects_[shipKey_].get();
+  Vector origin = ship->polygon().calculateCentroid();
+  
+  std::vector<Vector> vertices = {
+    Vector(origin.x()-1, origin.y()-3),
+    Vector(origin.x()+1, origin.y()-3),
+    Vector(origin.x()+1, origin.y()),
+    Vector(origin.x()-1, origin.y()),
+    Vector(origin.x()-1, origin.y()-3)
+  };
+  GePtr bullet = std::make_unique<GameEntity>(Polygon(vertices), ship->heading(), BULLET_GE_TYPE);
+  gameObjects_[GoMapKey(BULLET_GE_TYPE, bullet->id())] = std::move(bullet);
+}
+
+bool Game::inBounds(GameEntity* e) {
+  for (auto v : e->polygon().vertices()) {
+    if (v.x() < 0 || v.x() > screenWidth_ ||
+        v.y() < 0 || v.y() > screenHeight_) {
+      return false;
+    }
+  }
+  return true;
+}
+
 int Game::runGameLoop() {
   bool quit = false;
   SDL_Event e;
@@ -138,7 +192,8 @@ int Game::runGameLoop() {
   Timer capTimer;
   int countedFrames = 0;
   fpsTimer.start();
-
+  replenishAsteroids();
+  GameEntity* ship = initShip();
   while (!quit) {
     capTimer.start();
     while (SDL_PollEvent(&e) != 0) {
@@ -188,62 +243,61 @@ int Game::runGameLoop() {
   
     // Update Object Phase
     if (rotate) {
-      ship_->rotate(angle);
+      ship->rotate(angle);
 
-      if (!inBounds(ship_.get())) {
-        ship_->rotate(-angle);
+      if (!inBounds(ship)) {
+        ship->rotate(-angle);
       }
     }
 
     if (move_forward) {
-      ship_->move();
+      ship->move();
 
-      if (!inBounds(ship_.get())) {
-        ship_->reverse();
+      if (!inBounds(ship)) {
+        ship->reverse();
       }
     }
 
     if (move_reverse) {
-      ship_->reverse();
+      ship->reverse();
 
-      if (!inBounds(ship_.get())) {
-        ship_->move();
+      if (!inBounds(ship)) {
+        ship->move();
       }
     }
 
     if (shoot) {
-      bullets_.push_back(initBullet());
+      initBullet();
     }
-    for (auto bullet = bullets_.begin(); bullet != bullets_.end(); bullet++) {
-      (*bullet)->move();
-      if (!inBounds((*bullet).get())) {
-        bullets_.erase(bullet--);
+
+    auto bullets = objectsOfType(BULLET_GE_TYPE);
+    for (auto bullet: bullets) {
+      bullet->move();
+      if (!inBounds(bullet)) {
+        gameObjects_.erase(std::make_pair(BULLET_GE_TYPE, bullet->id()));
       }
     }
 
-    std::vector<GameEntity*> gameObjects = getRawGEPointers(asteroids_);
-    gameObjects.push_back(ship_.get());
-    std::vector<GameEntity*> bullets_tmp = getRawGEPointers(bullets_);
-    gameObjects.insert(gameObjects.end(), bullets_tmp.begin(), bullets_tmp.end());
+    std::vector<GameEntity*> allObjects = objectsOfType("ALL");
 
     std::vector<Collision> collisions;
-    collisions = detectCollisions(gameObjects);
+    collisions = detectCollisions(allObjects);
     for (auto c : collisions) {
       if ((c.entity1->type() == "player_ship" && c.entity2->type() == "asteroid") ||
           (c.entity1->type() == "asteroid" && c.entity2->type() == "player_ship")) {
         // TODO Ship explodes
         Vector mtv = c.min_normal * -c.min_interval;
-        ship_->move(mtv);
+        ship->move(mtv);
       }
       if ((c.entity1->type() == "bullet" && c.entity2->type() == "asteroid") ||
           (c.entity1->type() == "asteroid" && c.entity2->type() == "bullet")) {
         // Asteroid explodes
         std::string asteroidId = c.entity1->type() == "asteroid" ? c.entity1->id() : c.entity2->id();
-        asteroids_.erase(std::find_if(asteroids_.begin(), asteroids_.end(), [asteroidId] (std::unique_ptr<GameEntity>& ge) { return ge->id() == asteroidId; }));
+        gameObjects_.erase(std::make_pair(ASTEROID_GE_TYPE, asteroidId));
       }
     }
 
-    renderFrame(renderer_, gameObjects, [this](GameEntity* e) { e->render(this->renderer_, false); });
+    renderFrame();
 
     countedFrames++;
     int frameTicks = capTimer.getTicks();
@@ -252,43 +306,4 @@ int Game::runGameLoop() {
     }
   }
   return 0;
-}
-
-bool Game::inBounds(GameEntity* e) {
-  for (auto v : e->polygon().vertices()) {
-    if (v.x() < 0 || v.x() > screenWidth_ ||
-        v.y() < 0 || v.y() > screenHeight_) {
-      return false;
-    }
-  }
-  return true;
-}
-
-std::unique_ptr<GameEntity> Game::initBullet() {
-  Vector origin = ship_->polygon().calculateCentroid();
-  
-  std::vector<Vector> vertices = {
-    Vector(origin.x()-1, origin.y()-3),
-    Vector(origin.x()+1, origin.y()-3),
-    Vector(origin.x()+1, origin.y()),
-    Vector(origin.x()-1, origin.y()),
-    Vector(origin.x()-1, origin.y()-3)
-  };
-  return std::make_unique<GameEntity>(Polygon(vertices), ship_->heading(), "bullet");
-}
-
-void Game::initialiseShip() {
-  Vector center = Vector(
-      random(0, screenWidth_),
-      random(0, screenHeight_),
-      0
-  );
-
-  std::vector<Vector> vertices = {
-    Vector(center.x()-25, center.y()+25),
-    Vector(center.x(), center.y() - 25),
-    Vector(center.x()+25, center.y()+25),
-    Vector(center.x()-25, center.y()+25)
-  };
-  ship_ = std::make_unique<GameEntity>(Polygon(vertices), Vector(0, -6, 1, 1), "player_ship");
 }

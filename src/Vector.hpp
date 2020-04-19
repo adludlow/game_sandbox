@@ -34,10 +34,10 @@ class Vector {
     friend std::ostream& operator<<(std::ostream& os, const Vector& v);
 
   private:
-    int w_;
     coord_t x_;
     coord_t y_;
     coord_t z_;
+    int w_;
     float magnitude_;
 };
 

@@ -2,6 +2,7 @@
 #define ENTITY_HPP
 
 #include <string>
+#include <memory>
 #include <SDL.h>
 
 #include "Polygon.hpp"
@@ -38,5 +39,7 @@ class GameEntity {
 
     void init();
 };
+
+typedef std::unique_ptr<GameEntity> GePtr;
 
 #endif

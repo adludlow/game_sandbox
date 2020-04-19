@@ -24,12 +24,10 @@ int main(int argc, char** argv) {
     poly_radius = std::stoi(argv[3]);
   }
 
-  Game game = Game(SCREEN_WIDTH, SCREEN_HEIGHT);
+  Game game = Game(SCREEN_WIDTH, SCREEN_HEIGHT, num_polygons, poly_radius, num_verts);
   if (!game.init()) {
     std::cout << "Failed to initialise." << std::endl;
   } else {
-    game.initialiseShip();
-    game.initialiseAsteroids(num_polygons, poly_radius, num_verts);
     game.runGameLoop();
   }
 }
