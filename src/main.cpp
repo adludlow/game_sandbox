@@ -3,6 +3,7 @@
 #include <vector>
 #include <math.h>
 #include <string>
+#include <memory>
 
 #include "constants.hpp"
 #include "util.hpp"
@@ -10,7 +11,7 @@
 #include "Vector.hpp"
 #include "GameEntity.hpp"
 #include "Collision.hpp"
-
+#include "input/SdlInputHandler.hpp"
 #include "Game.hpp"
 
 int main(int argc, char** argv) {
@@ -24,7 +25,14 @@ int main(int argc, char** argv) {
     poly_radius = std::stoi(argv[3]);
   }
 
-  Game game = Game(SCREEN_WIDTH, SCREEN_HEIGHT, num_polygons, poly_radius, num_verts);
+  Game game = Game(
+    SCREEN_WIDTH,
+    SCREEN_HEIGHT,
+    num_polygons,
+    poly_radius,
+    num_verts,
+    std::make_unique<SdlInputHandler>()
+  );
   if (!game.init()) {
     std::cout << "Failed to initialise." << std::endl;
   } else {

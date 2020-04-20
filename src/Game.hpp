@@ -8,6 +8,7 @@
 #include "GameEntity.hpp"
 #include "Vector.hpp"
 #include "Collision.hpp"
+#include "input/ObservableInputHandler.hpp"
 
 typedef float coord_t;
 typedef std::pair<std::string, std::string> GoMapKey;
@@ -22,14 +23,16 @@ class Game {
       int screenHeight,
       unsigned int maxAsteroids,
       unsigned int asteroidRadius,
-      unsigned int asteroidVertCount) : 
+      unsigned int asteroidVertCount,
+      std::unique_ptr<ObservableInputHandler> inputHandler) : 
       screenWidth_(screenWidth),
       screenHeight_(screenHeight),
       maxAsteroids_(maxAsteroids),
       asteroidRadius_(asteroidRadius),
       asteroidVertCount_(asteroidVertCount),
       window_(nullptr),
-      renderer_(nullptr) {};
+      renderer_(nullptr),
+      inputHandler_(std::move(inputHandler)) {};
 
     GePtr generateAsteroid(int radius, int numVerts);
 
@@ -61,6 +64,8 @@ class Game {
     GoMapKey shipKey_;
     SDL_Window* window_;
     SDL_Renderer* renderer_;
+
+    std::unique_ptr<ObservableInputHandler> inputHandler_;
 
     std::vector<GameEntity*> objectsOfType(const char* const type);
 };

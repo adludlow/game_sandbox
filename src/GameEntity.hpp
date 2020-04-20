@@ -7,8 +7,12 @@
 
 #include "Polygon.hpp"
 #include "Vector.hpp"
+#include "input/InputObserver.hpp"
 
-class GameEntity {
+enum class MovementDirection { Forwards, Backwards, Stationary };
+enum class RotateDirection { Clockwise, AntiClockwise, None };
+
+class GameEntity: public InputObserver {
   public:
     GameEntity() : polygon_(Polygon()), heading_(Vector()), type_("") {
       init();
@@ -18,11 +22,15 @@ class GameEntity {
       init();
     };
 
+    void update();
+
     void render(SDL_Renderer* renderer, bool normals = false);
     void move(const Vector& trans_vec);
     void move();
     void reverse();
     void rotate(double angle);
+
+    virtual void onNotifyInput(const std::vector<InputEvent>& events);
 
     Polygon polygon();
     Vector heading() const;
@@ -36,6 +44,12 @@ class GameEntity {
     Polygon polygon_;
     Vector heading_;
     std::string type_;
+
+    MovementDirection moveDirection_;
+    RotateDirection rotateDirection_;
+    bool shooting_;
+
+    float rotateAngleDelta = 0.1;
 
     void init();
 };

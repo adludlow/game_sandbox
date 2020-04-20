@@ -148,6 +148,7 @@ GameEntity* Game::initShip() {
   GePtr ship = std::make_unique<GameEntity>(Polygon(vertices), Vector(0, -6, 1, 1), PLAYER_SHIP_GE_TYPE);
   shipKey_ = GoMapKey(PLAYER_SHIP_GE_TYPE, ship->id());
   gameObjects_[shipKey_] = std::move(ship);
+  inputHandler_->addObserver(gameObjects_[shipKey_].get());
 
   return gameObjects_[shipKey_].get();
 }
@@ -179,14 +180,6 @@ bool Game::inBounds(GameEntity* e) {
 
 int Game::runGameLoop() {
   bool quit = false;
-  SDL_Event e;
-  const Uint8 *keystate = nullptr;
-  float angle = 0.0;
-  float angleDelta = -0.1;
-  bool rotate = false;
-  bool move_forward = false;
-  bool move_reverse = false;
-  bool shoot = false;
 
   Timer fpsTimer;
   Timer capTimer;
@@ -196,77 +189,12 @@ int Game::runGameLoop() {
   GameEntity* ship = initShip();
   while (!quit) {
     capTimer.start();
-    while (SDL_PollEvent(&e) != 0) {
-      keystate = SDL_GetKeyboardState(NULL);
-      switch (e.type) {
-        case SDL_QUIT:
-          quit = true;
-          break;
-        case SDL_KEYDOWN:
-          if (keystate[SDL_SCANCODE_LEFT]) {
-            angle = angleDelta;
-            rotate = true;
-          }
-          if (keystate[SDL_SCANCODE_RIGHT]) {
-            angle = -angleDelta;
-            rotate = true;
-          }
-          if (keystate[SDL_SCANCODE_UP]) {
-            move_forward = true;
-          }
-          if (keystate[SDL_SCANCODE_DOWN]) {
-            move_reverse = true;
-          }
-          if (keystate[SDL_SCANCODE_SPACE]) {
-            shoot = true;
-          }
-          break;
-        case SDL_KEYUP:
-          if( !keystate[SDL_SCANCODE_LEFT] && !keystate[SDL_SCANCODE_RIGHT] ) {
-            rotate = false;
-          }
-          if( !keystate[SDL_SCANCODE_UP] ) {
-            move_forward = false;
-            move_reverse = false;
-          }
-          if (!keystate[SDL_SCANCODE_SPACE]) {
-            shoot = false;
-          }
-          break;
-      }
-    }
-
     float avgFps = countedFrames / ( fpsTimer.getTicks() / 1000.f );
     if( avgFps > 2000000 ) {
       avgFps = 0;
     }
-  
-    // Update Object Phase
-    if (rotate) {
-      ship->rotate(angle);
 
-      if (!inBounds(ship)) {
-        ship->rotate(-angle);
-      }
-    }
-
-    if (move_forward) {
-      ship->move();
-
-      if (!inBounds(ship)) {
-        ship->reverse();
-      }
-    }
-
-    if (move_reverse) {
-      ship->reverse();
-
-      if (!inBounds(ship)) {
-        ship->move();
-      }
-    }
-
-    if (shoot) {
+    /*if (shoot) {
       initBullet();
     }
 
@@ -276,6 +204,13 @@ int Game::runGameLoop() {
       if (!inBounds(bullet)) {
         gameObjects_.erase(std::make_pair(BULLET_GE_TYPE, bullet->id()));
       }
+    }*/
+
+    inputHandler_->handleInput();
+    // Add Observer for game
+
+    for (auto& gameObject: gameObjects_) {
+      gameObject.second->update();
     }
 
     std::vector<GameEntity*> allObjects = objectsOfType("ALL");

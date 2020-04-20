@@ -9,13 +9,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -std=c++17")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG} -g")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE} -O2")
 
-include_directories(/usr/include/SDL2 /usr/include/boost )
+include_directories(/usr/include/SDL2 /usr/include/boost ${CMAKE_CURRENT_SOURCE_DIR})
 
-file(GLOB game_sandbox_SRC 
-    "src/*.cpp"
-)
+file(GLOB ROOT_SRC "src/*.cpp")
+file(GLOB INPUT_SRC "src/input/*.cpp")
 
-add_executable(game_sandbox src/main.cpp ${game_sandbox_SRC})
+add_executable(game_sandbox ${ROOT_SRC} ${INPUT_SRC})
+
 if(MINGW)
 	target_link_libraries(game_sandbox /usr/local/lib/libSDL2.dll.a )
 else()
