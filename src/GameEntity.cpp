@@ -113,7 +113,7 @@ void GameEntity::onNotifyInput(const std::vector<InputEvent>& events) {
   }
 }
 
-void GameEntity::update() {
+void GameEntity::update(World& world) {
   if (moveDirection_ == MovementDirection::Forwards) {
     move();
   } else if(moveDirection_ == MovementDirection::Backwards) {

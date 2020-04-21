@@ -55,8 +55,8 @@ std::vector<Collision> Game::detectCollisions(const std::vector<GameEntity*>& ob
 
 GePtr Game::generateAsteroid(int radius, int numVerts) {
   Vector center = Vector(
-      util::random(0, screenWidth_),
-      util::random(0, screenHeight_),
+      util::random(0, world_.screenWidth),
+      util::random(0, world_.screenHeight),
       0
   );
 
@@ -112,8 +112,8 @@ bool Game::init() {
       "SDL Sandbox",
       SDL_WINDOWPOS_UNDEFINED,
       SDL_WINDOWPOS_UNDEFINED,
-      screenWidth_,
-      screenHeight_,
+      world_.screenWidth,
+      world_.screenHeight,
       SDL_WINDOW_SHOWN
     );
     if (window_ == nullptr) {
@@ -133,8 +133,8 @@ bool Game::init() {
 
 GameEntity* Game::initShip() {
   Vector center = Vector(
-      util::random(0, screenWidth_),
-      util::random(0, screenHeight_),
+      util::random(0, world_.screenWidth),
+      util::random(0, world_.screenHeight),
       0
   );
 
@@ -169,8 +169,8 @@ void Game::initBullet() {
 
 bool Game::inBounds(GameEntity* e) {
   for (auto v : e->polygon().vertices()) {
-    if (v.x() < 0 || v.x() > screenWidth_ ||
-        v.y() < 0 || v.y() > screenHeight_) {
+    if (v.x() < 0 || v.x() > world_.screenWidth ||
+        v.y() < 0 || v.y() > world_.screenHeight) {
       return false;
     }
   }
@@ -208,7 +208,7 @@ int Game::runGameLoop() {
     // Add Observer for game
 
     for (auto& gameObject: gameObjects_) {
-      gameObject.second->update();
+      gameObject.second->update(world_);
     }
 
     std::vector<GameEntity*> allObjects = objectsOfType("ALL");

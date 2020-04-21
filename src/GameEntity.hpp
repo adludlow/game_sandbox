@@ -9,6 +9,7 @@
 #include "Vector.hpp"
 #include "input/InputObserver.hpp"
 #include "util.hpp"
+#include "World.hpp"
 
 enum class MovementDirection { Forwards, Backwards, Stationary };
 enum class RotateDirection { Clockwise, AntiClockwise, None };
@@ -35,7 +36,7 @@ class GameEntity: public InputObserver {
       shooting_ = false;
     };
 
-    void update();
+    void update(World& world);
 
     void render(SDL_Renderer* renderer, bool normals = false);
     void move(const Vector& trans_vec);

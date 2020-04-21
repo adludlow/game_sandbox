@@ -20,9 +20,13 @@ int main(int argc, char** argv) {
     poly_radius = std::stoi(argv[3]);
   }
 
-  Game game = Game(
+  World world = { 
     SCREEN_WIDTH,
-    SCREEN_HEIGHT,
+    SCREEN_HEIGHT
+  };
+
+  Game game = Game(
+    world,
     num_polygons,
     poly_radius,
     num_verts,
