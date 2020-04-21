@@ -3,12 +3,18 @@
 
 #include <memory>
 #include <random>
+#include <string>
+
 #include <SDL.h>
 
 #include "Vector.hpp"
 
-double random(double min, double max);
+namespace util {
+  double random(double min, double max);
 
-std::vector<SDL_Point> toSdlPoints(const std::vector<Vector>& vertices);
+  std::vector<SDL_Point> toSdlPoints(const std::vector<Vector>& vertices);
+
+  std::string uuid();
+}
 
 #endif
