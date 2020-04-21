@@ -4,16 +4,19 @@
 #include <vector>
 #include <memory>
 #include <map>
+#include <string>
 
 #include "GameEntity.hpp"
 #include "Vector.hpp"
 #include "Collision.hpp"
+#include "input/InputObserver.hpp"
 #include "input/ObservableInputHandler.hpp"
+#include "util.hpp"
 
 typedef float coord_t;
 typedef std::pair<std::string, std::string> GoMapKey;
 
-class Game {
+class Game: public InputObserver {
   public:
     const int SCREEN_FPS = 60;
     const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
@@ -32,7 +35,12 @@ class Game {
       asteroidVertCount_(asteroidVertCount),
       window_(nullptr),
       renderer_(nullptr),
-      inputHandler_(std::move(inputHandler)) {};
+      inputHandler_(std::move(inputHandler)
+    ) {
+      id_ = util::uuid();
+      running_ = false;
+      inputHandler_->addObserver(this);
+    };
 
     GePtr generateAsteroid(int radius, int numVerts);
 
@@ -52,7 +60,12 @@ class Game {
     Collision colliding(GameEntity* e1, GameEntity* e2);
     std::vector<Collision> detectCollisions(const std::vector<GameEntity*>& objects);
     bool inBounds(GameEntity* e);
+
+    void onNotifyInput(const std::vector<InputEvent>& events);
+    std::string id();
   private:
+    bool running_;
+    std::string id_;
     int screenWidth_;
     int screenHeight_;
     unsigned int maxAsteroids_;

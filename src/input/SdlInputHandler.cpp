@@ -23,6 +23,9 @@ void SdlInputHandler::handleInput() {
   while (SDL_PollEvent(&e) != 0) {
     keystate = SDL_GetKeyboardState(NULL);
     switch (e.type) {
+      case SDL_QUIT:
+        events.push_back(InputEvent::QuitToDesktop);
+        break;
       case SDL_KEYDOWN:
         if (keystate[SDL_SCANCODE_LEFT]) {
           events.push_back(InputEvent::RotateAntiClockwise);

@@ -9,7 +9,8 @@ enum class InputEvent {
   RotateAntiClockwise,
   StopRotating,
   Shoot,
-  StopShoot
+  StopShoot,
+  QuitToDesktop
 };
 
 #endif

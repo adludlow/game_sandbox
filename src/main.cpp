@@ -6,11 +6,6 @@
 #include <memory>
 
 #include "constants.hpp"
-#include "util.hpp"
-#include "Polygon.hpp"
-#include "Vector.hpp"
-#include "GameEntity.hpp"
-#include "Collision.hpp"
 #include "input/SdlInputHandler.hpp"
 #include "Game.hpp"
 

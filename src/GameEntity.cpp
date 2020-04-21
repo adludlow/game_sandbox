@@ -1,13 +1,6 @@
-#include <boost/uuid/random_generator.hpp>
-#include <boost/uuid/uuid_io.hpp>
-
 #include "GameEntity.hpp"
 #include "Transform.hpp"
 #include "util.hpp"
-
-void GameEntity::init() {
-  id_ = boost::uuids::to_string(boost::uuids::random_generator()());
-}
 
 Polygon GameEntity::polygon() {
   return polygon_;
@@ -26,7 +19,7 @@ std::string GameEntity::id() {
 }
 
 void GameEntity::render(SDL_Renderer* renderer, bool normals) {
-  std::vector<SDL_Point> sdlPoints = toSdlPoints(polygon_.vertices());
+  std::vector<SDL_Point> sdlPoints = util::toSdlPoints(polygon_.vertices());
   std::vector<SDL_Point> edgeMidpoints;
   for ( auto i = 0lu; i < polygon_.vertices().size()-1; i++ ) {
     int x = (polygon_.vertices()[i].x() + polygon_.vertices()[i+1].x()) / 2;
@@ -36,7 +29,7 @@ void GameEntity::render(SDL_Renderer* renderer, bool normals) {
   SDL_RenderDrawLines(renderer, sdlPoints.data(), sdlPoints.size());
 
   if (normals) {
-    std::vector<SDL_Point> normalPoints = toSdlPoints(polygon_.normals());
+    std::vector<SDL_Point> normalPoints = util::toSdlPoints(polygon_.normals());
     for( auto i = 0lu; i < edgeMidpoints.size(); i++ ) {
       // Translate normals to sides of poly
       Transform trans = Transform();
@@ -113,6 +106,8 @@ void GameEntity::onNotifyInput(const std::vector<InputEvent>& events) {
         break;
       case InputEvent::StopShoot:
         shooting_ = false;
+        break;
+      default:
         break;
     }
   }

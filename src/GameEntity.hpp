@@ -8,18 +8,31 @@
 #include "Polygon.hpp"
 #include "Vector.hpp"
 #include "input/InputObserver.hpp"
+#include "util.hpp"
 
 enum class MovementDirection { Forwards, Backwards, Stationary };
 enum class RotateDirection { Clockwise, AntiClockwise, None };
 
 class GameEntity: public InputObserver {
   public:
-    GameEntity() : polygon_(Polygon()), heading_(Vector()), type_("") {
-      init();
-    };
+    GameEntity() : 
+      polygon_(Polygon()),
+      heading_(Vector()),
+      type_(""),
+      id_(util::uuid()) {};
 
-    GameEntity(const Polygon& polygon, const Vector& heading = Vector(), const std::string& type = "") : polygon_(polygon), heading_(heading), type_(type) {
-      init();
+    GameEntity(
+      const Polygon& polygon,
+      const Vector& heading = Vector(),
+      const std::string& type = ""
+    ) : 
+    polygon_(polygon),
+    heading_(heading),
+    type_(type),
+    id_(util::uuid()) {
+      moveDirection_ = MovementDirection::Stationary;
+      rotateDirection_ = RotateDirection::None;
+      shooting_ = false;
     };
 
     void update();
@@ -40,18 +53,16 @@ class GameEntity: public InputObserver {
     virtual ~GameEntity() {};
 
   private:
-    std::string id_;
     Polygon polygon_;
     Vector heading_;
     std::string type_;
+    std::string id_;
 
     MovementDirection moveDirection_;
     RotateDirection rotateDirection_;
     bool shooting_;
 
     float rotateAngleDelta = 0.1;
-
-    void init();
 };
 
 typedef std::unique_ptr<GameEntity> GePtr;

@@ -7,7 +7,7 @@
 Polygon::Polygon(const Vector& center, double radius, int num_verts) {
   std::vector<double> angles;
   for( int i = 0; i < num_verts; i++ ) {
-    double angle = random( 0, 1 ) * pi*2;
+    double angle = util::random( 0, 1 ) * pi*2;
     angles.push_back(angle);
   }
   std::sort( angles.begin(), angles.end() );

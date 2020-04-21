@@ -3,7 +3,6 @@
 #include <SDL.h>
 
 #include "Game.hpp"
-#include "util.hpp"
 #include "Timer.hpp"
 #include "constants.hpp"
 
@@ -56,8 +55,8 @@ std::vector<Collision> Game::detectCollisions(const std::vector<GameEntity*>& ob
 
 GePtr Game::generateAsteroid(int radius, int numVerts) {
   Vector center = Vector(
-      random(0, screenWidth_),
-      random(0, screenHeight_),
+      util::random(0, screenWidth_),
+      util::random(0, screenHeight_),
       0
   );
 
@@ -134,8 +133,8 @@ bool Game::init() {
 
 GameEntity* Game::initShip() {
   Vector center = Vector(
-      random(0, screenWidth_),
-      random(0, screenHeight_),
+      util::random(0, screenWidth_),
+      util::random(0, screenHeight_),
       0
   );
 
@@ -179,15 +178,14 @@ bool Game::inBounds(GameEntity* e) {
 }
 
 int Game::runGameLoop() {
-  bool quit = false;
-
+  running_ = true;
   Timer fpsTimer;
   Timer capTimer;
   int countedFrames = 0;
   fpsTimer.start();
   replenishAsteroids();
   GameEntity* ship = initShip();
-  while (!quit) {
+  while (running_) {
     capTimer.start();
     float avgFps = countedFrames / ( fpsTimer.getTicks() / 1000.f );
     if( avgFps > 2000000 ) {
@@ -241,4 +239,20 @@ int Game::runGameLoop() {
     }
   }
   return 0;
+}
+
+std::string Game::id() {
+  return id_;
+}
+
+void Game::onNotifyInput(const std::vector<InputEvent>& events) {
+  for (auto event: events) {
+    switch (event) {
+      case InputEvent::QuitToDesktop:
+        running_ = false; 
+        break;
+      default:
+        break;
+    }
+  }
 }
