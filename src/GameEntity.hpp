@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include <queue>
 #include <SDL.h>
 
 #include "Polygon.hpp"
@@ -51,6 +52,8 @@ class GameEntity: public InputObserver {
     std::string type();
     std::string id();
 
+    bool inScreenBounds(const World& world) const;
+
     virtual ~GameEntity() {};
 
   private:
@@ -59,11 +62,13 @@ class GameEntity: public InputObserver {
     std::string type_;
     std::string id_;
 
+    std::queue<InputEvent> inputPipeline_;
+
     MovementDirection moveDirection_;
     RotateDirection rotateDirection_;
     bool shooting_;
 
-    float rotateAngleDelta = 0.1;
+    float rotateAngleDelta_ = 0.1;
 };
 
 typedef std::unique_ptr<GameEntity> GePtr;

@@ -167,16 +167,6 @@ void Game::initBullet() {
   gameObjects_[GoMapKey(BULLET_GE_TYPE, bullet->id())] = std::move(bullet);
 }
 
-bool Game::inBounds(GameEntity* e) {
-  for (auto v : e->polygon().vertices()) {
-    if (v.x() < 0 || v.x() > world_.screenWidth ||
-        v.y() < 0 || v.y() > world_.screenHeight) {
-      return false;
-    }
-  }
-  return true;
-}
-
 int Game::runGameLoop() {
   running_ = true;
   Timer fpsTimer;

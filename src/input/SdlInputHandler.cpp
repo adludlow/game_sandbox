@@ -1,3 +1,4 @@
+#include <iostream>
 #include <map>
 #include <SDL.h>
 
@@ -18,47 +19,27 @@ void SdlInputHandler::removeObserver(InputObserver* observer) {
 
 void SdlInputHandler::handleInput() {
   SDL_Event e;
-  const Uint8 *keystate = nullptr;
   std::vector<InputEvent> events;
+  const Uint8 *keystate = SDL_GetKeyboardState(NULL);
+  if (keystate[SDL_SCANCODE_LEFT]) {
+    events.push_back(InputEvent::RotateAntiClockwise);
+  }
+  if (keystate[SDL_SCANCODE_RIGHT]) {
+    events.push_back(InputEvent::RotateClockwise);
+  }
+  if (keystate[SDL_SCANCODE_UP]) {
+    events.push_back(InputEvent::MoveForwards);
+  }
+  if (keystate[SDL_SCANCODE_DOWN]) {
+    events.push_back(InputEvent::MoveBackwards);
+  }
+  if (keystate[SDL_SCANCODE_SPACE]) {
+    events.push_back(InputEvent::Shoot);
+  }
   while (SDL_PollEvent(&e) != 0) {
-    keystate = SDL_GetKeyboardState(NULL);
     switch (e.type) {
       case SDL_QUIT:
         events.push_back(InputEvent::QuitToDesktop);
-        break;
-      case SDL_KEYDOWN:
-        if (keystate[SDL_SCANCODE_LEFT]) {
-          events.push_back(InputEvent::RotateAntiClockwise);
-        }
-        if (keystate[SDL_SCANCODE_RIGHT]) {
-          events.push_back(InputEvent::RotateClockwise);
-        }
-        if (keystate[SDL_SCANCODE_UP]) {
-          events.push_back(InputEvent::MoveForwards);
-        }
-        if (keystate[SDL_SCANCODE_DOWN]) {
-          events.push_back(InputEvent::MoveBackwards);
-        }
-        if (keystate[SDL_SCANCODE_SPACE]) {
-          events.push_back(InputEvent::Shoot);
-        }
-        break;
-      case SDL_KEYUP:
-        if (!keystate[SDL_SCANCODE_LEFT]) {
-          events.push_back(InputEvent::StopRotating);
-        }
-        if (!keystate[SDL_SCANCODE_RIGHT]) {
-          events.push_back(InputEvent::StopRotating);
-        }
-        if (!keystate[SDL_SCANCODE_UP]) {
-          events.push_back(InputEvent::StopMoving);
-        }
-        if (!keystate[SDL_SCANCODE_UP]) {
-          events.push_back(InputEvent::StopMoving);
-        }
-        if (!keystate[SDL_SCANCODE_SPACE]) {
-          events.push_back(InputEvent::StopShoot);
-        }
         break;
     }
   }
