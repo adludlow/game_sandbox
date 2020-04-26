@@ -152,20 +152,6 @@ GameEntity* Game::initShip() {
   return gameObjects_[shipKey_].get();
 }
 
-void Game::initBullet() {
-  GameEntity* ship = gameObjects_[shipKey_].get();
-  Vector origin = ship->polygon().calculateCentroid();
-  
-  std::vector<Vector> vertices = {
-    Vector(origin.x()-1, origin.y()-3),
-    Vector(origin.x()+1, origin.y()-3),
-    Vector(origin.x()+1, origin.y()),
-    Vector(origin.x()-1, origin.y()),
-    Vector(origin.x()-1, origin.y()-3)
-  };
-  GePtr bullet = std::make_unique<GameEntity>(Polygon(vertices), ship->heading(), BULLET_GE_TYPE);
-  gameObjects_[GoMapKey(BULLET_GE_TYPE, bullet->id())] = std::move(bullet);
-}
 
 int Game::runGameLoop() {
   running_ = true;
@@ -182,29 +168,31 @@ int Game::runGameLoop() {
       avgFps = 0;
     }
 
-    /*if (shoot) {
-      initBullet();
-    }
-
     auto bullets = objectsOfType(BULLET_GE_TYPE);
     for (auto bullet: bullets) {
       bullet->move();
-      if (!inBounds(bullet)) {
+      if (!bullet->inScreenBounds(world_)) {
         gameObjects_.erase(std::make_pair(BULLET_GE_TYPE, bullet->id()));
       }
-    }*/
+    }
 
     inputHandler_->handleInput();
     // Add Observer for game
 
     for (auto& gameObject: gameObjects_) {
-      gameObject.second->update(world_);
+      std::vector<GePtr> newEntities = gameObject.second->update(world_);
+      if (newEntities.size() > 0) {
+        for (auto& e: newEntities) {
+          gameObjects_[GoMapKey(BULLET_GE_TYPE, e->id())] = std::move(e);
+        }
+      }
     }
 
     std::vector<GameEntity*> allObjects = objectsOfType("ALL");
 
     std::vector<Collision> collisions;
     collisions = detectCollisions(allObjects);
+    std::vector<GoMapKey> objectsToErase;
     for (auto c : collisions) {
       if ((c.entity1->type() == "player_ship" && c.entity2->type() == "asteroid") ||
           (c.entity1->type() == "asteroid" && c.entity2->type() == "player_ship")) {
@@ -216,8 +204,12 @@ int Game::runGameLoop() {
           (c.entity1->type() == "asteroid" && c.entity2->type() == "bullet")) {
         // Asteroid explodes
         std::string asteroidId = c.entity1->type() == "asteroid" ? c.entity1->id() : c.entity2->id();
-        gameObjects_.erase(std::make_pair(ASTEROID_GE_TYPE, asteroidId));
+        objectsToErase.push_back(GoMapKey(ASTEROID_GE_TYPE, asteroidId));
       }
+    }
+
+    for (auto o: objectsToErase) {
+      gameObjects_.erase(o);
     }
 
     renderFrame();
@@ -227,6 +219,7 @@ int Game::runGameLoop() {
     if( frameTicks < SCREEN_TICKS_PER_FRAME ) {
       SDL_Delay( SCREEN_TICKS_PER_FRAME - frameTicks );
     }
+    std::cout << gameObjects_.size() << std::endl;
   }
   return 0;
 }

@@ -3,6 +3,7 @@
 #include "GameEntity.hpp"
 #include "Transform.hpp"
 #include "util.hpp"
+#include "constants.hpp"
 
 Polygon GameEntity::polygon() {
   return polygon_;
@@ -98,7 +99,21 @@ bool GameEntity::inScreenBounds(const World& world) const {
   return true;
 }
 
-void GameEntity::update(World& world) {
+GePtr GameEntity::initBullet() {
+  Vector origin = polygon().calculateCentroid();
+  
+  std::vector<Vector> vertices = {
+    Vector(origin.x()-1, origin.y()-3),
+    Vector(origin.x()+1, origin.y()-3),
+    Vector(origin.x()+1, origin.y()),
+    Vector(origin.x()-1, origin.y()),
+    Vector(origin.x()-1, origin.y()-3)
+  };
+  return std::make_unique<GameEntity>(Polygon(vertices), heading()*3, BULLET_GE_TYPE);
+}
+
+std::vector<GePtr> GameEntity::update(World& world) {
+  std::vector<GePtr> childEntities;
   while (!inputPipeline_.empty()) {
     auto event = inputPipeline_.front();
     switch (event) {
@@ -127,14 +142,12 @@ void GameEntity::update(World& world) {
         }
         break;
       case InputEvent::Shoot:
-        shooting_ = true;
-        break;
-      case InputEvent::StopShoot:
-        shooting_ = false;
+        childEntities.push_back(initBullet());
         break;
       default:
         break;
     }
     inputPipeline_.pop();
   }
+  return childEntities;
 }

@@ -15,6 +15,9 @@
 enum class MovementDirection { Forwards, Backwards, Stationary };
 enum class RotateDirection { Clockwise, AntiClockwise, None };
 
+class GameEntity;
+typedef std::unique_ptr<GameEntity> GePtr;
+
 class GameEntity: public InputObserver {
   public:
     GameEntity() : 
@@ -37,13 +40,14 @@ class GameEntity: public InputObserver {
       shooting_ = false;
     };
 
-    void update(World& world);
+    std::vector<GePtr> update(World& world);
 
     void render(SDL_Renderer* renderer, bool normals = false);
     void move(const Vector& trans_vec);
     void move();
     void reverse();
     void rotate(double angle);
+    GePtr initBullet();
 
     virtual void onNotifyInput(const std::vector<InputEvent>& events);
 
@@ -70,7 +74,5 @@ class GameEntity: public InputObserver {
 
     float rotateAngleDelta_ = 0.1;
 };
-
-typedef std::unique_ptr<GameEntity> GePtr;
 
 #endif
