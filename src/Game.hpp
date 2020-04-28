@@ -12,6 +12,7 @@
 #include "input/InputObserver.hpp"
 #include "input/ObservableInputHandler.hpp"
 #include "util.hpp"
+#include "World.hpp"
 
 typedef float coord_t;
 typedef std::pair<std::string, std::string> GoMapKey;
@@ -22,14 +23,12 @@ class Game: public InputObserver {
     const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
     Game(
-      int screenWidth,
-      int screenHeight,
+      World world,
       unsigned int maxAsteroids,
       unsigned int asteroidRadius,
       unsigned int asteroidVertCount,
       std::unique_ptr<ObservableInputHandler> inputHandler) : 
-      screenWidth_(screenWidth),
-      screenHeight_(screenHeight),
+      world_(world),
       maxAsteroids_(maxAsteroids),
       asteroidRadius_(asteroidRadius),
       asteroidVertCount_(asteroidVertCount),
@@ -64,10 +63,9 @@ class Game: public InputObserver {
     void onNotifyInput(const std::vector<InputEvent>& events);
     std::string id();
   private:
+    World world_;
     bool running_;
     std::string id_;
-    int screenWidth_;
-    int screenHeight_;
     unsigned int maxAsteroids_;
     unsigned int asteroidRadius_;
     unsigned int asteroidVertCount_;

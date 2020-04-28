@@ -3,15 +3,20 @@
 
 #include <string>
 #include <memory>
+#include <queue>
 #include <SDL.h>
 
 #include "Polygon.hpp"
 #include "Vector.hpp"
 #include "input/InputObserver.hpp"
 #include "util.hpp"
+#include "World.hpp"
 
 enum class MovementDirection { Forwards, Backwards, Stationary };
 enum class RotateDirection { Clockwise, AntiClockwise, None };
+
+class GameEntity;
+typedef std::unique_ptr<GameEntity> GePtr;
 
 class GameEntity: public InputObserver {
   public:
@@ -35,13 +40,14 @@ class GameEntity: public InputObserver {
       shooting_ = false;
     };
 
-    void update();
+    std::vector<GePtr> update(World& world);
 
     void render(SDL_Renderer* renderer, bool normals = false);
     void move(const Vector& trans_vec);
     void move();
     void reverse();
     void rotate(double angle);
+    GePtr initBullet();
 
     virtual void onNotifyInput(const std::vector<InputEvent>& events);
 
@@ -49,6 +55,8 @@ class GameEntity: public InputObserver {
     Vector heading() const;
     std::string type();
     std::string id();
+
+    bool inScreenBounds(const World& world) const;
 
     virtual ~GameEntity() {};
 
@@ -58,13 +66,13 @@ class GameEntity: public InputObserver {
     std::string type_;
     std::string id_;
 
+    std::queue<InputEvent> inputPipeline_;
+
     MovementDirection moveDirection_;
     RotateDirection rotateDirection_;
     bool shooting_;
 
-    float rotateAngleDelta = 0.1;
+    float rotateAngleDelta_ = 0.1;
 };
-
-typedef std::unique_ptr<GameEntity> GePtr;
 
 #endif

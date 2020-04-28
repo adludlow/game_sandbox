@@ -1,6 +1,9 @@
+#include <iostream>
+
 #include "GameEntity.hpp"
 #include "Transform.hpp"
 #include "util.hpp"
+#include "constants.hpp"
 
 Polygon GameEntity::polygon() {
   return polygon_;
@@ -82,47 +85,69 @@ void GameEntity::rotate(double angle) {
 
 void GameEntity::onNotifyInput(const std::vector<InputEvent>& events) {
   for (auto event: events) {
+    inputPipeline_.push(event);
+  }
+}
+
+bool GameEntity::inScreenBounds(const World& world) const {
+  for (auto v : polygon_.vertices()) {
+    if (v.x() < 0 || v.x() > world.screenWidth ||
+        v.y() < 0 || v.y() > world.screenHeight) {
+      return false;
+    }
+  }
+  return true;
+}
+
+GePtr GameEntity::initBullet() {
+  Vector origin = polygon().calculateCentroid();
+  
+  std::vector<Vector> vertices = {
+    Vector(origin.x()-1, origin.y()-3),
+    Vector(origin.x()+1, origin.y()-3),
+    Vector(origin.x()+1, origin.y()),
+    Vector(origin.x()-1, origin.y()),
+    Vector(origin.x()-1, origin.y()-3)
+  };
+  return std::make_unique<GameEntity>(Polygon(vertices), heading()*3, BULLET_GE_TYPE);
+}
+
+std::vector<GePtr> GameEntity::update(World& world) {
+  std::vector<GePtr> childEntities;
+  while (!inputPipeline_.empty()) {
+    auto event = inputPipeline_.front();
     switch (event) {
       case InputEvent::MoveForwards:
-        moveDirection_ = MovementDirection::Forwards;
+        move();
+        if (!inScreenBounds(world)) {
+          reverse();
+        }
         break;
       case InputEvent::MoveBackwards:
-        moveDirection_ = MovementDirection::Backwards;
-        break;
-      case InputEvent::StopMoving:
-        moveDirection_ = MovementDirection::Stationary;
+        reverse();
+        if (!inScreenBounds(world)) {
+          move();
+        }
         break;
       case InputEvent::RotateClockwise:
-        rotateDirection_ = RotateDirection::Clockwise;
+        rotate(rotateAngleDelta_);
+        if (!inScreenBounds(world)) {
+          rotate(-rotateAngleDelta_);
+        }
         break;
       case InputEvent::RotateAntiClockwise:
-        rotateDirection_ = RotateDirection::AntiClockwise;
-        break;
-      case InputEvent::StopRotating:
-        rotateDirection_ = RotateDirection::None;
+        rotate(-rotateAngleDelta_);
+        if (!inScreenBounds(world)) {
+          rotate(rotateAngleDelta_);
+        }
         break;
       case InputEvent::Shoot:
-        shooting_ = true;
-        break;
-      case InputEvent::StopShoot:
-        shooting_ = false;
+        childEntities.push_back(initBullet());
         break;
       default:
         break;
     }
+    inputPipeline_.pop();
   }
-}
-
-void GameEntity::update() {
-  if (moveDirection_ == MovementDirection::Forwards) {
-    move();
-  } else if(moveDirection_ == MovementDirection::Backwards) {
-    reverse();
-  }
-
-  if (rotateDirection_ == RotateDirection::Clockwise) {
-    rotate(rotateAngleDelta);
-  } else if(rotateDirection_ == RotateDirection::AntiClockwise) {
-    rotate(-rotateAngleDelta);
-  }
+  return childEntities;
 }
