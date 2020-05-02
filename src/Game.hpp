@@ -58,6 +58,7 @@ class Game: public InputObserver {
 
     Collision colliding(GameEntity* e1, GameEntity* e2);
     std::vector<Collision> detectCollisions(const std::vector<GameEntity*>& objects);
+    std::vector<Collision> detectCollisions(GameEntity* subject, const std::vector<GameEntity*>& objects);
     bool inBounds(GameEntity* e);
 
     void onNotifyInput(const std::vector<InputEvent>& events);

@@ -51,7 +51,7 @@ class GameEntity: public InputObserver {
 
     virtual void onNotifyInput(const std::vector<InputEvent>& events);
 
-    Polygon polygon();
+    Polygon polygon() const;
     Vector heading() const;
     std::string type();
     std::string id();

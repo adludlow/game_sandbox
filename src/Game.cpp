@@ -14,6 +14,7 @@ Collision Game::colliding(GameEntity* e1, GameEntity* e2) {
   normals.insert(normals.end(), e2Normals.begin(), e2Normals.end());
   double interval = -1000000, min_interval = -1000000, max_interval = 0;
   Vector min_normal, max_normal = Vector();
+  std::vector<std::pair<Vector, double>> penetrations;
   for ( auto n : normals ) {
     PolygonProjectionResult p1_res = e1->polygon().project(n);
     PolygonProjectionResult p2_res = e2->polygon().project(n);
@@ -28,26 +29,39 @@ Collision Game::colliding(GameEntity* e1, GameEntity* e2) {
       return { false, interval };
     }
 
+    Vector nUnit = n.unit();
+    penetrations.push_back(std::make_pair(nUnit, interval));
     if( interval > min_interval ) {
       min_interval = interval;
-      min_normal = n;
+      min_normal = nUnit;
     }
     if( interval < max_interval ) {
       max_interval = interval;
-      max_normal = n;
+      max_normal = nUnit;
     }
   }
-  return Collision(true, min_interval, max_interval, min_normal.unit(), max_normal.unit(), e1, e2);
+  return Collision(true, min_interval, max_interval, min_normal, max_normal, e1, e2, penetrations);
 }
 
 std::vector<Collision> Game::detectCollisions(const std::vector<GameEntity*>& objects) {
   std::vector<Collision> collisions;
-  for( unsigned int i = 0; i < objects.size(); i++ ) {
-    for( unsigned int j = i + 1; j < objects.size(); j++ ) {
+  for (unsigned int i = 0; i < objects.size(); i++) {
+    for (unsigned int j = i + 1; j < objects.size(); j++) {
       Collision collision = colliding(objects[i], objects[j]);
-      if( collision.colliding ) {
+      if (collision.colliding) {
         collisions.push_back(collision);
       }
+    }
+  }
+  return collisions;
+}
+
+std::vector<Collision> Game::detectCollisions(GameEntity* subject, const std::vector<GameEntity*>& objects) {
+  std::vector<Collision> collisions;
+  for (auto i = 0lu; i < objects.size(); i++) {
+    Collision collision = colliding(subject, objects[i]);
+    if (collision.colliding) {
+      collisions.push_back(collision);
     }
   }
   return collisions;
@@ -177,7 +191,6 @@ int Game::runGameLoop() {
     }
 
     inputHandler_->handleInput();
-    // Add Observer for game
 
     for (auto& gameObject: gameObjects_) {
       std::vector<GePtr> newEntities = gameObject.second->update(world_);
@@ -188,17 +201,37 @@ int Game::runGameLoop() {
       }
     }
 
-    std::vector<GameEntity*> allObjects = objectsOfType("ALL");
+    std::vector<GameEntity*> asteroids = objectsOfType(ASTEROID_GE_TYPE);
 
-    std::vector<Collision> collisions;
-    collisions = detectCollisions(allObjects);
+    std::vector<Collision> shipCollisions;
+    shipCollisions = detectCollisions(ship, asteroids);
     std::vector<GoMapKey> objectsToErase;
-    for (auto c : collisions) {
+    Vector heading = -ship->heading().unit();
+    for (auto c: shipCollisions) {
+      // Find the mtv closest to the ship heading.
+      std::pair<Vector, double> bestFit (Vector(), 0);
+      float closest = -1.0f;
+      for (auto p: c.penetrations) {
+        float cosim = heading.cosineSimilarity(p.first);
+        if (cosim > closest) {
+          closest = cosim;
+          bestFit = p;
+        }
+      }
+      //Vector mtv = c.min_normal * -c.min_interval;
+      std::cout << bestFit.first << ", " << bestFit.second << std::endl;
+      std::cout << c.min_normal << ", " << c.min_interval << std::endl << std::endl;
+      Vector mtv = bestFit.first * -bestFit.second;
+      ship->move(mtv);  
+    }
+    /*for (auto c : collisions) {
       if ((c.entity1->type() == "player_ship" && c.entity2->type() == "asteroid") ||
           (c.entity1->type() == "asteroid" && c.entity2->type() == "player_ship")) {
         // TODO Ship explodes
+        std::cout << "Normal and Interval: " << c.min_normal << " " << c.min_interval << std::endl;
         Vector mtv = c.min_normal * -c.min_interval;
-        ship->move(mtv);
+        std::cout << "MTV: " << mtv << std::endl;
+        ship->move(mtv*3);
       }
       if ((c.entity1->type() == "bullet" && c.entity2->type() == "asteroid") ||
           (c.entity1->type() == "asteroid" && c.entity2->type() == "bullet")) {
@@ -206,7 +239,7 @@ int Game::runGameLoop() {
         std::string asteroidId = c.entity1->type() == "asteroid" ? c.entity1->id() : c.entity2->id();
         objectsToErase.push_back(GoMapKey(ASTEROID_GE_TYPE, asteroidId));
       }
-    }
+    }*/
 
     for (auto o: objectsToErase) {
       gameObjects_.erase(o);
@@ -219,7 +252,6 @@ int Game::runGameLoop() {
     if( frameTicks < SCREEN_TICKS_PER_FRAME ) {
       SDL_Delay( SCREEN_TICKS_PER_FRAME - frameTicks );
     }
-    std::cout << gameObjects_.size() << std::endl;
   }
   return 0;
 }
