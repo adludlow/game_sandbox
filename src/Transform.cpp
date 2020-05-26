@@ -28,7 +28,6 @@ float Transform::dotProduct(const Vector& v1, const Vector& v2) {
     glm::vec4(v1.x(), v1.y(), v1.z(), v1.w()),
     glm::vec4(v2.x(), v2.y(), v2.z(), v2.w())
   );
-  
 }
 
 float Transform::project(const Vector& v, const Vector& plane) {

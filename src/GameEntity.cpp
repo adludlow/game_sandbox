@@ -5,7 +5,7 @@
 #include "util.hpp"
 #include "constants.hpp"
 
-Polygon GameEntity::polygon() {
+Polygon GameEntity::polygon() const {
   return polygon_;
 }
 

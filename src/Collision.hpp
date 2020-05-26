@@ -2,6 +2,8 @@
 #define COLLISION_HPP
 
 #include <ostream>
+#include <vector>
+#include <utility>
 
 #include "Vector.hpp"
 
@@ -14,6 +16,8 @@ struct Collision {
 
   GameEntity* entity1;
   GameEntity* entity2;
+
+  std::vector<std::pair<Vector, double>> penetrations;
 
   Collision(
     bool coll,
@@ -30,7 +34,8 @@ struct Collision {
     Vector min_n,
     Vector max_n,
     GameEntity* e1,
-    GameEntity* e2) {
+    GameEntity* e2,
+    std::vector<std::pair<Vector, double>> pens) {
     colliding = coll;
     min_interval = min_i;
     max_interval = max_i;
@@ -38,6 +43,7 @@ struct Collision {
     max_normal = max_n;
     entity1 = e1;
     entity2 = e2;
+    penetrations = pens;
   }
 };
 

@@ -22,9 +22,14 @@ class Vector {
     static Vector lhNormal(const Vector& v1, const Vector& v2);
     static Vector rhNormal(const Vector& v1, const Vector& v2);
 
+    float calculateMagnitude() const;
+    float dot(const Vector& v) const;
+
     Vector unit() const;
 
     std::string toString() const;
+
+    double cosineSimilarity(Vector& v) const;
 
     Vector operator - () const;
     Vector operator - (const Vector& v) const;
